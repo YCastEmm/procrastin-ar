@@ -25,7 +25,7 @@ const RegisterScreen = ({navigation} : RegisterScreenProps) => {
 
     return (
         <View style={styles.container}>
-            <Text>Login</Text>
+            <Text>Registro</Text>
             <TextInput
                 style={styles.textInput}
                 placeholder="Usuario"
