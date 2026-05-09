@@ -3,37 +3,54 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { notificarTareaCreada } from "@/services/notificationsService"
+import { programarRecordatorio } from "@/services/notificationsService"
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-type AddTaskScreenProps ={
+
+type AddTaskScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
 }
 
-const AddTaskScreen = ({navigation}: AddTaskScreenProps) => {
+const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     const [tarea, setTarea] = useState<string>("")
+    const [horaElegida, setHoraElegida] = useState<Date>(new Date())
 
+
+    const abrirPicker = () => {
+        DateTimePickerAndroid.open({
+            value: horaElegida,
+            mode: 'time',
+            is24Hour: true,
+            onChange: (event, selectedDate) => {
+                if (selectedDate) setHoraElegida(selectedDate)
+            }
+        })
+    }
 
     const handleAddTask = async () => {
-        
+
+        try {
         const storedTasks = await AsyncStorage.getItem("tareas")
         const listaTareas = storedTasks ? JSON.parse(storedTasks) : []
-    
         const nuevaTarea = {
             id: Date.now().toString(),
             fecha: new Date().toLocaleDateString('es-AR'),
             descripcion: tarea,
-            completada: false, 
+            completada: false,
         }
-
         listaTareas.push(nuevaTarea)
         await AsyncStorage.setItem("tareas", JSON.stringify(listaTareas))
-        await notificarTareaCreada(tarea)
+        await programarRecordatorio(tarea, horaElegida)
         navigation.navigate("Home")
+    } catch (error) {
+        console.error(error)
+    }
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView  style={styles.container}>
             <Text>Agregar tarea</Text>
             <TextInput
                 style={styles.textInput}
@@ -41,40 +58,41 @@ const AddTaskScreen = ({navigation}: AddTaskScreenProps) => {
                 value={tarea}
                 onChangeText={setTarea}
             />
+            <TouchableOpacity style={styles.touchable} onPress={abrirPicker}>
+                <Text>Hora del recordatorio: {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</Text>
+            </TouchableOpacity>
             <TouchableOpacity
                 style={styles.touchable}
                 onPress={handleAddTask}
             >
                 <Text>Crear tarea</Text>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView >
     )
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         padding: 24,
-        backgroundColor: '#e4e4e4',
+        paddingBottom: 40,
+        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
     },
-
     textInput: {
         backgroundColor: '#fff',
-        padding: 5,
+        padding: 12,
         borderRadius: 8,
-        marginBottom: 8
+        marginBottom: 12,
+        fontSize: 16,
     },
-
     touchable: {
-        borderWidth: 1,
-        borderColor: "#000",
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8,
-    }
+        backgroundColor: '#208AEF',
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginBottom: 12,
+    },
 })
 
 export default AddTaskScreen
