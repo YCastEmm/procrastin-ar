@@ -6,6 +6,7 @@ import { Task } from "@/types/Task.type"
 import TaskItem from "@/components/TaskItem"
 import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
 import { pedirPermisos } from "@/services/notificationsService"
+import { cerrarSesion } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
@@ -42,7 +43,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Home</Text>
+            <Text style={styles.appTitle}>
+                Procrastin<Text style={styles.appTitleBold}>AR</Text>
+            </Text>
 
             <Text style={styles.sectionHeader}>Pendientes</Text>
             <FlatList
@@ -69,6 +72,14 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 <Text style={globalStyles.primaryButtonText}>+ Agregar tarea</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity style={globalStyles.secondaryButton}
+                onPress={async () => {
+                    await cerrarSesion()
+                    navigation.replace("Login")
+                }}>
+                <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>
+            </TouchableOpacity>
+
         </SafeAreaView>
     )
 }
@@ -80,11 +91,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
     },
-    title: {
-        fontSize: typography.title,
-        fontWeight: '700',
-        color: colors.text,
+    appTitle: {
+        fontSize: 36, fontWeight: '300', color: colors.text,
         marginBottom: spacing.lg,
+    },
+    appTitleBold: {
+        fontWeight: '800', color: colors.primary,
     },
     sectionHeader: {
         fontSize: typography.sectionHeader,

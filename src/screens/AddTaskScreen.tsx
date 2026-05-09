@@ -52,7 +52,10 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Nueva tarea</Text>
+            <Text style={styles.appTitle}>
+                Procrastin<Text style={styles.appTitleBold}>AR</Text>
+            </Text>
+            <Text style={styles.subtitle}>Nueva tarea</Text>
 
             <Text style={styles.label}>Descripción</Text>
             <TextInput
@@ -88,10 +91,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
     },
-    title: {
-        fontSize: typography.title,
-        fontWeight: '700',
-        color: colors.text,
+    appTitle: {
+        fontSize: 36, fontWeight: '300', color: colors.text,
+        marginBottom: spacing.xs,
+    },
+    appTitleBold: {
+        fontWeight: '800', color: colors.primary,
+    },
+    subtitle: {
+        fontSize: typography.body, color: colors.textMuted,
         marginBottom: spacing.lg,
     },
     label: {
