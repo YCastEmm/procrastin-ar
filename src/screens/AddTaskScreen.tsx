@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { notificarTareaCreada } from "@/services/notificationsService"
 
 type AddTaskScreenProps ={
     navigation: StackNavigationProp<RootStackParamList>
@@ -27,6 +28,7 @@ const AddTaskScreen = ({navigation}: AddTaskScreenProps) => {
 
         listaTareas.push(nuevaTarea)
         await AsyncStorage.setItem("tareas", JSON.stringify(listaTareas))
+        await notificarTareaCreada(tarea)
         navigation.navigate("Home")
     }
 

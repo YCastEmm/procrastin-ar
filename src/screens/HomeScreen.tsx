@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Task } from "@/types/Task.type"
 import TaskItem from "@/components/TaskItem"
 import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
-import { cargarPermisoNotificaciones } from "@/services/notificationsService"
+import { pedirPermisos } from "@/services/notificationsService"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
@@ -22,7 +22,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
     useEffect(() => {
         cargarTareas()
-        cargarPermisoNotificaciones()
+        pedirPermisos()
     }, [])
 
 

@@ -4,6 +4,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as Notifications from 'expo-notifications'
+
 
 export type RootStackParamList = {
     Login: undefined;
@@ -18,6 +20,16 @@ const Stack = createStackNavigator<RootStackParamList>(); // crea el objeto que 
 // navigatorContainer crea el contenedor que envuelve la app y permite la navegacion
 // stack.Navigator define la config del stack
 // stack.screen define el nombre de cada pantalla y el componente que le corresponde a cada una
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        houldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+    }),
+})
 
 export default function App() {
     return (
