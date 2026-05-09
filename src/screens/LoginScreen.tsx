@@ -1,94 +1,110 @@
 import { useState } from "react"
-import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native"
-import { StackNavigationProp } from '@react-navigation/stack';
+import { Text, TextInput, TouchableOpacity, StyleSheet } from "react-native"
+import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from "../../App"
-import { verificarUsuario } from "@/services/authService";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { verificarUsuario } from "@/services/authService"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { colors, spacing, typography, radius } from "@/theme"
 
 type LoginScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
+    navigation: StackNavigationProp<RootStackParamList>
 }
 
 const LoginScreen = ({ navigation }: LoginScreenProps) => {
-
     const [usuario, setUsuario] = useState<string>("")
     const [contraseña, setContraseña] = useState<string>("")
     const [error, setError] = useState<string>("")
 
-
-    // acciona segun al respuesta de verificarUsuario
     const handleLogin = async () => {
         const successfullLogin = await verificarUsuario(usuario, contraseña)
         if (successfullLogin === null) {
             setError("El usuario no existe")
         }
-
         if (successfullLogin === true) {
             navigation.navigate("Home")
         }
-
         if (successfullLogin === false) {
             setError("Credenciales de acceso inválidas")
         }
     }
 
-
     return (
         <SafeAreaView style={styles.container}>
-            <Text>Login</Text>
+            <Text style={styles.title}>Iniciar sesión</Text>
+
+            <Text style={styles.label}>Usuario</Text>
             <TextInput
                 style={styles.textInput}
-                placeholder="Usuario"
+                placeholder="Ingresá tu usuario"
+                placeholderTextColor={colors.textMuted}
                 value={usuario}
                 onChangeText={setUsuario}
             />
+
+            <Text style={styles.label}>Contraseña</Text>
             <TextInput
                 style={styles.textInput}
                 secureTextEntry
-                placeholder="Contraseña"
+                placeholder="Ingresá tu contraseña"
+                placeholderTextColor={colors.textMuted}
                 value={contraseña}
                 onChangeText={setContraseña}
             />
-            <TouchableOpacity
-                style={styles.touchable}
-                onPress={handleLogin}>
-                <Text>Iniciar sesión</Text>
+
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
+                <Text style={styles.primaryButtonText}>Iniciar sesión</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.touchable}
-                onPress={() => navigation.navigate("Register")}
-            >
-                <Text>Registrarme</Text>
+
+            <TouchableOpacity style={styles.secondaryButton}
+                onPress={() => navigation.navigate("Register")}>
+                <Text style={styles.secondaryButtonText}>Registrarme</Text>
             </TouchableOpacity>
-            <Text>{error}</Text>
         </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 24,
-        backgroundColor: '#e4e4e4',
+        flex: 1, justifyContent: 'center',
+        paddingHorizontal: spacing.lg, paddingTop: spacing.md,
+        backgroundColor: colors.background,
     },
-
+    title: {
+        fontSize: typography.title, fontWeight: '700', color: colors.text,
+        marginBottom: spacing.lg, textAlign: 'center',
+    },
+    label: {
+        fontSize: typography.sectionHeader, fontWeight: '600',
+        color: colors.textMuted, textTransform: 'uppercase',
+        letterSpacing: 0.5, marginBottom: spacing.sm,
+    },
     textInput: {
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8
+        fontSize: typography.body, color: colors.text, borderWidth: 1,
+        borderColor: colors.border, borderRadius: radius.md,
+        backgroundColor: colors.surface, padding: spacing.md,
+        marginBottom: spacing.lg,
     },
-
-    touchable: {
-        borderWidth: 1,
-        borderColor: "#000",
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8,
-    }
+    error: {
+        fontSize: typography.caption, color: colors.danger,
+        marginBottom: spacing.md, textAlign: 'center',
+    },
+    primaryButton: {
+        backgroundColor: colors.primary, paddingVertical: spacing.md,
+        borderRadius: radius.md, alignItems: 'center', marginTop: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    primaryButtonText: {
+        fontSize: typography.body, fontWeight: '600', color: '#fff',
+    },
+    secondaryButton: {
+        paddingVertical: spacing.md, borderRadius: radius.md,
+        alignItems: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    secondaryButtonText: {
+        fontSize: typography.body, fontWeight: '500', color: colors.primary,
+    },
 })
 
 export default LoginScreen

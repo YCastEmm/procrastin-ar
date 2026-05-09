@@ -1,20 +1,18 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
-import AsyncStorage from "@react-native-async-storage/async-storage"
 import { guardarUsuario } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { colors, spacing, typography, radius } from "@/theme"
 
-type RegisterScreenProps ={
+type RegisterScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
 }
 
-const RegisterScreen = ({navigation} : RegisterScreenProps) => {
-
+const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
     const [usuario, setUsuario] = useState<string>("")
     const [contraseña, setContraseña] = useState<string>("")
-
 
     const handleRegister = async () => {
         await guardarUsuario(usuario, contraseña)
@@ -23,25 +21,34 @@ const RegisterScreen = ({navigation} : RegisterScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text>Registro</Text>
+            <Text style={styles.title}>Crear cuenta</Text>
+
+            <Text style={styles.label}>Usuario</Text>
             <TextInput
                 style={styles.textInput}
-                placeholder="Usuario"
+                placeholder="Ingresá tu usuario"
+                placeholderTextColor={colors.textMuted}
                 value={usuario}
                 onChangeText={setUsuario}
             />
+
+            <Text style={styles.label}>Contraseña</Text>
             <TextInput
                 style={styles.textInput}
                 secureTextEntry
-                placeholder="Contraseña"
+                placeholder="Ingresá tu contraseña"
+                placeholderTextColor={colors.textMuted}
                 value={contraseña}
                 onChangeText={setContraseña}
             />
-            <TouchableOpacity
-                style={styles.touchable}
-                onPress={handleRegister}
-            >
-                <Text>Crear usuario</Text>
+
+            <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
+                <Text style={styles.primaryButtonText}>Crear usuario</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.secondaryButton}
+                onPress={() => navigation.navigate("Login")}>
+                <Text style={styles.secondaryButtonText}>Ya tengo cuenta</Text>
             </TouchableOpacity>
         </SafeAreaView>
     )
@@ -49,28 +56,40 @@ const RegisterScreen = ({navigation} : RegisterScreenProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 24,
-        backgroundColor: '#e4e4e4',
+        flex: 1, justifyContent: 'center',
+        paddingHorizontal: spacing.lg, paddingTop: spacing.md,
+        backgroundColor: colors.background,
     },
-
+    title: {
+        fontSize: typography.title, fontWeight: '700', color: colors.text,
+        marginBottom: spacing.lg, textAlign: 'center',
+    },
+    label: {
+        fontSize: typography.sectionHeader, fontWeight: '600',
+        color: colors.textMuted, textTransform: 'uppercase',
+        letterSpacing: 0.5, marginBottom: spacing.sm,
+    },
     textInput: {
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8
+        fontSize: typography.body, color: colors.text, borderWidth: 1,
+        borderColor: colors.border, borderRadius: radius.md,
+        backgroundColor: colors.surface, padding: spacing.md,
+        marginBottom: spacing.lg,
     },
-
-    touchable: {
-        borderWidth: 1,
-        borderColor: "#000",
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8,
-    }
+    primaryButton: {
+        backgroundColor: colors.primary, paddingVertical: spacing.md,
+        borderRadius: radius.md, alignItems: 'center', marginTop: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    primaryButtonText: {
+        fontSize: typography.body, fontWeight: '600', color: '#fff',
+    },
+    secondaryButton: {
+        paddingVertical: spacing.md, borderRadius: radius.md,
+        alignItems: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    secondaryButtonText: {
+        fontSize: typography.body, fontWeight: '500', color: colors.primary,
+    },
 })
 
 export default RegisterScreen
