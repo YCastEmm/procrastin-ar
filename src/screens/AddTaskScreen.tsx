@@ -1,11 +1,12 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { programarRecordatorio } from "@/services/notificationsService"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { colors, spacing, typography, radius } from "@/theme"
 
 
 type AddTaskScreenProps = {
@@ -50,48 +51,98 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     }
 
     return (
-        <SafeAreaView  style={styles.container}>
-            <Text>Agregar tarea</Text>
+        <SafeAreaView style={styles.container}>
+            <Text style={styles.title}>Nueva tarea</Text>
+
+            <Text style={styles.label}>Descripción</Text>
             <TextInput
                 style={styles.textInput}
-                placeholder="Descripción de la tarea"
+                placeholder="¿Qué tenés que hacer?"
+                placeholderTextColor={colors.textMuted}
                 value={tarea}
                 onChangeText={setTarea}
             />
-            <TouchableOpacity style={styles.touchable} onPress={abrirPicker}>
-                <Text>Hora del recordatorio: {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</Text>
+
+            <Text style={styles.label}>Recordatorio</Text>
+            <TouchableOpacity style={styles.timeRow} onPress={abrirPicker}>
+                <Text style={styles.timeLabel}>Hora</Text>
+                <Text style={styles.timeValue}>
+                    {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-                style={styles.touchable}
+                style={styles.createButton}
                 onPress={handleAddTask}
             >
-                <Text>Crear tarea</Text>
+                <Text style={styles.createButtonText}>Crear tarea</Text>
             </TouchableOpacity>
-        </SafeAreaView >
+        </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 24,
-        paddingBottom: 40,
-        backgroundColor: '#f5f5f5',
-        justifyContent: 'center',
+        backgroundColor: colors.background,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+    },
+    title: {
+        fontSize: typography.title,
+        fontWeight: '700',
+        color: colors.text,
+        marginBottom: spacing.lg,
+    },
+    label: {
+        fontSize: typography.sectionHeader,
+        fontWeight: '600',
+        color: colors.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: spacing.sm,
     },
     textInput: {
-        backgroundColor: '#fff',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 12,
-        fontSize: 16,
+        fontSize: typography.body,
+        color: colors.text,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        backgroundColor: colors.surface,
+        padding: spacing.md,
+        marginBottom: spacing.lg,
     },
-    touchable: {
-        backgroundColor: '#208AEF',
-        padding: 14,
-        borderRadius: 12,
+    timeRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        backgroundColor: colors.surface,
+        padding: spacing.md,
+        marginBottom: spacing.lg,
+    },
+    timeLabel: {
+        fontSize: typography.body,
+        color: colors.textMuted,
+    },
+    timeValue: {
+        fontSize: typography.body,
+        fontWeight: '600',
+        color: colors.text,
+    },
+    createButton: {
+        backgroundColor: colors.primary,
+        paddingVertical: spacing.md,
+        borderRadius: radius.md,
+        alignItems: 'center',
+        marginTop: spacing.sm,
+    },
+    createButtonText: {
+        fontSize: typography.body,
+        fontWeight: '600',
+        color: '#fff',
     },
 })
 
