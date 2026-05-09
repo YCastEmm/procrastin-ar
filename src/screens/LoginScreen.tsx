@@ -3,6 +3,7 @@ import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-nativ
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from "../../App"
 import { verificarUsuario } from "@/services/authService";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type LoginScreenProps = {
     navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
@@ -33,7 +34,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Text>Login</Text>
             <TextInput
                 style={styles.textInput}
@@ -60,7 +61,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 <Text>Registrarme</Text>
             </TouchableOpacity>
             <Text>{error}</Text>
-        </View>
+        </SafeAreaView>
     )
 }
 

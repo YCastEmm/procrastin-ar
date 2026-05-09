@@ -6,6 +6,7 @@ import { Task } from "@/types/Task.type"
 import TaskItem from "@/components/TaskItem"
 import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
 import { pedirPermisos } from "@/services/notificationsService"
+import { SafeAreaView } from "react-native-safe-area-context"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
@@ -38,7 +39,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Text>Home</Text>
 
             <Text>Lista de tareas pendientes</Text>
@@ -63,7 +64,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 <Text>Agregar tarea</Text>
             </TouchableOpacity>
 
-        </View>
+        </SafeAreaView>
     )
 }
 

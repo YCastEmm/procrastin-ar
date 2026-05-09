@@ -4,6 +4,7 @@ import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { guardarUsuario } from "@/services/authService"
+import { SafeAreaView } from "react-native-safe-area-context"
 
 type RegisterScreenProps ={
     navigation: StackNavigationProp<RootStackParamList>
@@ -21,7 +22,7 @@ const RegisterScreen = ({navigation} : RegisterScreenProps) => {
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Text>Registro</Text>
             <TextInput
                 style={styles.textInput}
@@ -42,7 +43,7 @@ const RegisterScreen = ({navigation} : RegisterScreenProps) => {
             >
                 <Text>Crear usuario</Text>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     )
 }
 
