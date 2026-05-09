@@ -23,3 +23,10 @@ export const eliminarTarea = async (id: string) => {
     await saveTareas(actualizadas);
     return actualizadas;
 };
+
+export const limpiarCompletadas = async () => {
+    const tareas = await getTareas();
+    const pendientes = tareas.filter((item: Task) => !item.completada);
+    await saveTareas(pendientes);
+    return pendientes;
+};

@@ -4,7 +4,7 @@ import { RootStackParamList } from "../../App"
 import { useEffect, useState } from "react"
 import { Task } from "@/types/Task.type"
 import TaskItem from "@/components/TaskItem"
-import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
+import { completarTarea, eliminarTarea, limpiarCompletadas, getTareas } from "@/services/taskService"
 import { pedirPermisos } from "@/services/notificationsService"
 import { cerrarSesion } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
@@ -40,46 +40,61 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         setListaTareas(actualizadas)
     }
 
+    const handleLimpiarCompletadas = async () => {
+        const pendientes = await limpiarCompletadas()
+        setListaTareas(pendientes)
+    }
+
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.appTitle}>
-                Procrastin<Text style={styles.appTitleBold}>AR</Text>
-            </Text>
+            <View style={styles.content}>
+                <Text style={styles.appTitle}>
+                    Procrastin<Text style={styles.appTitleBold}>AR</Text>
+                </Text>
 
-            <Text style={styles.sectionHeader}>Pendientes</Text>
-            <FlatList
-                style={styles.list}
-                data={listaTareas?.filter((task) => task.completada === false)}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
-                ListEmptyComponent={<Text style={styles.emptyText}>No tenés tareas pendientes</Text>}
-            />
+                <Text style={styles.sectionHeader}>Pendientes</Text>
+                <FlatList
+                    style={styles.list}
+                    data={listaTareas?.filter((task) => task.completada === false)}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
+                    ListEmptyComponent={<Text style={styles.emptyText}>No tenés tareas pendientes</Text>}
+                />
 
-            <Text style={styles.sectionHeader}>Completadas</Text>
-            <FlatList
-                style={styles.list}
-                data={listaTareas?.filter((task) => task.completada === true)}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (<TaskItem task={item} />)}
-                ListEmptyComponent={<Text style={styles.emptyText}>No hay tareas completadas</Text>}
-            />
+                <View style={styles.sectionRow}>
+                    <Text style={styles.sectionHeader}>Completadas</Text>
+                    {listaTareas.some(t => t.completada) && (
+                        <TouchableOpacity onPress={handleLimpiarCompletadas}>
+                            <Text style={styles.clearText}>Limpiar</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+                <FlatList
+                    style={styles.list}
+                    data={listaTareas?.filter((task) => task.completada === true)}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (<TaskItem task={item} />)}
+                    ListEmptyComponent={<Text style={styles.emptyText}>No hay tareas completadas</Text>}
+                />
+            </View>
 
-            <TouchableOpacity
-                style={globalStyles.primaryButton}
-                onPress={() => navigation.navigate("AddTask")}
-            >
-                <Text style={globalStyles.primaryButtonText}>+ Agregar tarea</Text>
-            </TouchableOpacity>
+            <View style={styles.bottomButtons}>
+                <TouchableOpacity
+                    style={globalStyles.primaryButton}
+                    onPress={() => navigation.navigate("AddTask")}
+                >
+                    <Text style={globalStyles.primaryButtonText}>+ Agregar tarea</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity style={globalStyles.secondaryButton}
-                onPress={async () => {
-                    await cerrarSesion()
-                    navigation.replace("Login")
-                }}>
-                <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>
-            </TouchableOpacity>
-
+                <TouchableOpacity style={globalStyles.secondaryButton}
+                    onPress={async () => {
+                        await cerrarSesion()
+                        navigation.replace("Login")
+                    }}>
+                    <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>
+                </TouchableOpacity>
+            </View>
         </SafeAreaView>
     )
 }
@@ -90,6 +105,9 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
+    },
+    content: {
+        flex: 1,
     },
     appTitle: {
         fontSize: 36, fontWeight: '300', color: colors.text,
@@ -107,6 +125,14 @@ const styles = StyleSheet.create({
         marginTop: spacing.md,
         marginBottom: spacing.sm,
     },
+    sectionRow: {
+        flexDirection: 'row', alignItems: 'baseline',
+        justifyContent: 'space-between', marginTop: spacing.md,
+    },
+    clearText: {
+        fontSize: typography.caption, fontWeight: '600',
+        color: colors.primary, marginBottom: spacing.sm,
+    },
     list: {
         flexGrow: 0,
     },
@@ -114,7 +140,9 @@ const styles = StyleSheet.create({
         fontSize: typography.body, color: colors.textMuted,
         fontStyle: 'italic', paddingVertical: spacing.sm,
     },
-
+    bottomButtons: {
+        paddingTop: spacing.md, gap: spacing.sm,
+    },
 })
 
 export default HomeScreen
