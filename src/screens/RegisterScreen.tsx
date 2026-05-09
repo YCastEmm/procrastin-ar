@@ -1,8 +1,8 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
+import { View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import { RootStackParamList } from "../../App"
-import { useState } from "react"
-import { guardarUsuario } from "@/services/authService"
+import { useState, useEffect } from "react"
+import { guardarUsuario, estaLogueado } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
@@ -14,8 +14,25 @@ type RegisterScreenProps = {
 const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
     const [usuario, setUsuario] = useState<string>("")
     const [contraseña, setContraseña] = useState<string>("")
+    const [confirmarContraseña, setConfirmarContraseña] = useState<string>("")
+    const [mostrarContraseña, setMostrarContraseña] = useState<boolean>(false)
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState<boolean>(false)
+    const [error, setError] = useState<string>("")
+
+    useEffect(() => {
+        (async () => {
+            if (await estaLogueado()) {
+                navigation.replace("Home")
+            }
+        })()
+    }, [])
 
     const handleRegister = async () => {
+        if (contraseña !== confirmarContraseña) {
+            setError("Las contraseñas no coinciden")
+            return
+        }
+        setError("")
         await guardarUsuario(usuario, contraseña)
         navigation.navigate("Login")
     }
@@ -34,14 +51,42 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
             />
 
             <Text style={styles.label}>Contraseña</Text>
-            <TextInput
-                style={styles.textInput}
-                secureTextEntry
-                placeholder="Ingresá tu contraseña"
-                placeholderTextColor={colors.textMuted}
-                value={contraseña}
-                onChangeText={setContraseña}
-            />
+            <View style={styles.passwordContainer}>
+                <TextInput
+                    style={styles.passwordInput}
+                    secureTextEntry={!mostrarContraseña}
+                    placeholder="Ingresá tu contraseña"
+                    placeholderTextColor={colors.textMuted}
+                    value={contraseña}
+                    onChangeText={setContraseña}
+                />
+                <TouchableOpacity style={styles.toggleButton}
+                    onPress={() => setMostrarContraseña(!mostrarContraseña)}>
+                    <Text style={styles.toggleText}>
+                        {mostrarContraseña ? "Ocultar" : "Mostrar"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Confirmar contraseña</Text>
+            <View style={styles.passwordContainer}>
+                <TextInput
+                    style={styles.passwordInput}
+                    secureTextEntry={!mostrarConfirmacion}
+                    placeholder="Repetí tu contraseña"
+                    placeholderTextColor={colors.textMuted}
+                    value={confirmarContraseña}
+                    onChangeText={setConfirmarContraseña}
+                />
+                <TouchableOpacity style={styles.toggleButton}
+                    onPress={() => setMostrarConfirmacion(!mostrarConfirmacion)}>
+                    <Text style={styles.toggleText}>
+                        {mostrarConfirmacion ? "Ocultar" : "Mostrar"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <TouchableOpacity style={globalStyles.primaryButton} onPress={handleRegister}>
                 <Text style={globalStyles.primaryButtonText}>Crear usuario</Text>
@@ -75,6 +120,25 @@ const styles = StyleSheet.create({
         borderColor: colors.border, borderRadius: radius.md,
         backgroundColor: colors.surface, padding: spacing.md,
         marginBottom: spacing.lg,
+    },
+    passwordContainer: {
+        flexDirection: 'row', alignItems: 'center', borderWidth: 1,
+        borderColor: colors.border, borderRadius: radius.md,
+        backgroundColor: colors.surface, marginBottom: spacing.lg,
+    },
+    passwordInput: {
+        flex: 1, fontSize: typography.body, color: colors.text,
+        padding: spacing.md,
+    },
+    toggleButton: {
+        paddingHorizontal: spacing.md, paddingVertical: spacing.md,
+    },
+    toggleText: {
+        fontSize: typography.caption, fontWeight: '600', color: colors.primary,
+    },
+    error: {
+        fontSize: typography.caption, color: colors.danger,
+        marginBottom: spacing.md, textAlign: 'center',
     },
 })
 

@@ -1,8 +1,8 @@
-import { useState } from "react"
-import { Text, TextInput, TouchableOpacity, StyleSheet } from "react-native"
+import { useState, useEffect } from "react"
+import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native"
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from "../../App"
-import { verificarUsuario } from "@/services/authService"
+import { verificarUsuario, iniciarSesion, estaLogueado } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
@@ -15,6 +15,15 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [usuario, setUsuario] = useState<string>("")
     const [contraseña, setContraseña] = useState<string>("")
     const [error, setError] = useState<string>("")
+    const [mostrarContraseña, setMostrarContraseña] = useState<boolean>(false)
+
+    useEffect(() => {
+        (async () => {
+            if (await estaLogueado()) {
+                navigation.replace("Home")
+            }
+        })()
+    }, [])
 
     const handleLogin = async () => {
         const successfullLogin = await verificarUsuario(usuario, contraseña)
@@ -22,7 +31,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             setError("El usuario no existe")
         }
         if (successfullLogin === true) {
-            navigation.navigate("Home")
+            await iniciarSesion(usuario)
+            navigation.replace("Home")
         }
         if (successfullLogin === false) {
             setError("Credenciales de acceso inválidas")
@@ -31,8 +41,13 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Iniciar sesión</Text>
-
+            <Text style={styles.appTitle}>
+                Procrastin<Text style={styles.appTitleBold}>AR</Text>
+            </Text>
+            <Text style={styles.appSubtitle}>
+                No hagas hoy lo que podés dejar para mañana
+            </Text>
+            <Text style={styles.iniciarSesion}>Iniciar sesión</Text>
             <Text style={styles.label}>Usuario</Text>
             <TextInput
                 style={styles.textInput}
@@ -43,14 +58,22 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             />
 
             <Text style={styles.label}>Contraseña</Text>
-            <TextInput
-                style={styles.textInput}
-                secureTextEntry
-                placeholder="Ingresá tu contraseña"
-                placeholderTextColor={colors.textMuted}
-                value={contraseña}
-                onChangeText={setContraseña}
-            />
+            <View style={styles.passwordContainer}>
+                <TextInput
+                    style={styles.passwordInput}
+                    secureTextEntry={!mostrarContraseña}
+                    placeholder="Ingresá tu contraseña"
+                    placeholderTextColor={colors.textMuted}
+                    value={contraseña}
+                    onChangeText={setContraseña}
+                />
+                <TouchableOpacity style={styles.toggleButton}
+                    onPress={() => setMostrarContraseña(!mostrarContraseña)}>
+                    <Text style={styles.toggleText}>
+                        {mostrarContraseña ? "Ocultar" : "Mostrar"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -72,9 +95,22 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg, paddingTop: spacing.md,
         backgroundColor: colors.background,
     },
-    title: {
-        fontSize: typography.title, fontWeight: '700', color: colors.text,
-        marginBottom: spacing.lg, textAlign: 'center',
+    appTitle: {
+        fontSize: 36, fontWeight: '300', color: colors.text,
+        textAlign: 'center', marginBottom: spacing.xs,
+    },
+    appTitleBold: {
+        fontWeight: '800', color: colors.primary,
+    },
+    appSubtitle: {
+        fontSize: 16, fontWeight: "200",
+        textAlign: 'center', marginBottom: spacing.xxl
+    }
+    ,
+    iniciarSesion: {
+        color: colors.textMuted,
+        textAlign: 'left', marginBottom: spacing.lg,
+        fontWeight: "600", fontSize: 20
     },
     label: {
         fontSize: typography.sectionHeader, fontWeight: '600',
@@ -86,6 +122,21 @@ const styles = StyleSheet.create({
         borderColor: colors.border, borderRadius: radius.md,
         backgroundColor: colors.surface, padding: spacing.md,
         marginBottom: spacing.lg,
+    },
+    passwordContainer: {
+        flexDirection: 'row', alignItems: 'center', borderWidth: 1,
+        borderColor: colors.border, borderRadius: radius.md,
+        backgroundColor: colors.surface, marginBottom: spacing.lg,
+    },
+    passwordInput: {
+        flex: 1, fontSize: typography.body, color: colors.text,
+        padding: spacing.md,
+    },
+    toggleButton: {
+        paddingHorizontal: spacing.md, paddingVertical: spacing.md,
+    },
+    toggleText: {
+        fontSize: typography.caption, fontWeight: '600', color: colors.primary,
     },
     error: {
         fontSize: typography.caption, color: colors.danger,
