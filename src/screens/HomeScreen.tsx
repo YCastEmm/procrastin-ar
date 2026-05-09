@@ -7,9 +7,10 @@ import TaskItem from "@/components/TaskItem"
 import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
 import { pedirPermisos } from "@/services/notificationsService"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { colors, spacing, typography } from "@/theme"
 
 type HomeScreenProps = {
-    navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
+    navigation: StackNavigationProp<RootStackParamList>
 }
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
@@ -40,28 +41,29 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text>Home</Text>
+            <Text style={styles.title}>Home</Text>
 
-            <Text>Lista de tareas pendientes</Text>
+            <Text style={styles.sectionHeader}>Pendientes</Text>
             <FlatList
+                style={styles.list}
                 data={listaTareas?.filter((task) => task.completada === false)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
             />
 
-
-            <Text>Completadas</Text>
+            <Text style={styles.sectionHeader}>Completadas</Text>
             <FlatList
+                style={styles.list}
                 data={listaTareas?.filter((task) => task.completada === true)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (<TaskItem task={item} />)}
             />
 
-
             <TouchableOpacity
+                style={styles.addButton}
                 onPress={() => navigation.navigate("AddTask")}
             >
-                <Text>Agregar tarea</Text>
+                <Text style={styles.addButtonText}>+ Agregar tarea</Text>
             </TouchableOpacity>
 
         </SafeAreaView>
@@ -71,27 +73,39 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 24,
-        backgroundColor: '#e4e4e4',
+        backgroundColor: colors.background,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
     },
-
-    textInput: {
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8
+    title: {
+        fontSize: typography.title,
+        fontWeight: '700',
+        color: colors.text,
+        marginBottom: spacing.lg,
     },
-
-    touchable: {
-        borderWidth: 1,
-        borderColor: "#000",
-        backgroundColor: '#fff',
-        padding: 5,
-        borderRadius: 8,
-        marginBottom: 8,
-    }
+    sectionHeader: {
+        fontSize: typography.sectionHeader,
+        fontWeight: '600',
+        color: colors.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginTop: spacing.md,
+        marginBottom: spacing.sm,
+    },
+    list: {
+        flexGrow: 0,
+    },
+    addButton: {
+        paddingVertical: spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        marginTop: spacing.lg,
+    },
+    addButtonText: {
+        fontSize: typography.body,
+        color: colors.primary,
+        fontWeight: '500',
+    },
 })
 
 export default HomeScreen
