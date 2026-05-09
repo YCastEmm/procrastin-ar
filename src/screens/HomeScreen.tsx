@@ -8,6 +8,7 @@ import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService
 import { pedirPermisos } from "@/services/notificationsService"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography } from "@/themes/theme"
+import { globalStyles } from "@/themes/styles"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -62,10 +63,10 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             />
 
             <TouchableOpacity
-                style={styles.addButton}
+                style={globalStyles.primaryButton}
                 onPress={() => navigation.navigate("AddTask")}
             >
-                <Text style={styles.addButtonText}>+ Agregar tarea</Text>
+                <Text style={globalStyles.primaryButtonText}>+ Agregar tarea</Text>
             </TouchableOpacity>
 
         </SafeAreaView>
@@ -101,17 +102,7 @@ const styles = StyleSheet.create({
         fontSize: typography.body, color: colors.textMuted,
         fontStyle: 'italic', paddingVertical: spacing.sm,
     },
-    addButton: {
-        paddingVertical: spacing.md,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        marginTop: spacing.lg,
-    },
-    addButtonText: {
-        fontSize: typography.body,
-        color: colors.primary,
-        fontWeight: '500',
-    },
+
 })
 
 export default HomeScreen
