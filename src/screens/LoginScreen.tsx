@@ -15,7 +15,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [contraseña, setContraseña] = useState<string>("")
     const [error, setError] = useState<string>("")
 
-
+    
+    // chequea el usuario ingresado contra el guardado en el asyncStorage
     const verificarUsuario = async () => {
         const storedUser = await AsyncStorage.getItem("usuario")
         if (!storedUser) {
@@ -30,6 +31,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         }
     }
 
+    // acciona segun al respuesta de verificarUsuario
     const handleLogin = async () => {
         const successfullLogin = await verificarUsuario()
         if (successfullLogin === null) {
