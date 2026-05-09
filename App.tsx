@@ -15,8 +15,9 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>(); // crea el objeto que maneja la pila de pantallas
 
 
-// NavigatorContainer crea el contenedor que envuelve la app y permite la navegacion
-// Stack.Navigator define la config del stack
+// navigatorContainer crea el contenedor que envuelve la app y permite la navegacion
+// stack.Navigator define la config del stack
+// stack.screen define el nombre de cada pantalla y el componente que le corresponde a cada una
 
 export default function App() {
     return (
