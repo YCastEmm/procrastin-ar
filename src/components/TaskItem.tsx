@@ -1,6 +1,6 @@
 import { Task } from "@/types/Task.type"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
-import { colors, spacing, typography, radius } from "@/theme"
+import { colors, spacing, typography, radius } from "@/themes/theme"
 
 type TaskItemProps = {
     task: Task

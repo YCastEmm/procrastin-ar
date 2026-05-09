@@ -7,7 +7,7 @@ import TaskItem from "@/components/TaskItem"
 import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
 import { pedirPermisos } from "@/services/notificationsService"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { colors, spacing, typography } from "@/theme"
+import { colors, spacing, typography } from "@/themes/theme"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>

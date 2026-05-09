@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { programarRecordatorio } from "@/services/notificationsService"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, radius } from "@/theme"
+import { colors, spacing, typography, radius } from "@/themes/theme"
 
 
 type AddTaskScreenProps = {

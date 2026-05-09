@@ -4,7 +4,8 @@ import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { guardarUsuario } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { colors, spacing, typography, radius } from "@/theme"
+import { colors, spacing, typography, radius } from "@/themes/theme"
+import { globalStyles } from "@/themes/styles"
 
 type RegisterScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -42,13 +43,13 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
                 onChangeText={setContraseña}
             />
 
-            <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
-                <Text style={styles.primaryButtonText}>Crear usuario</Text>
+            <TouchableOpacity style={globalStyles.primaryButton} onPress={handleRegister}>
+                <Text style={globalStyles.primaryButtonText}>Crear usuario</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.secondaryButton}
+            <TouchableOpacity style={globalStyles.secondaryButton}
                 onPress={() => navigation.navigate("Login")}>
-                <Text style={styles.secondaryButtonText}>Ya tengo cuenta</Text>
+                <Text style={globalStyles.secondaryButtonText}>Ya tengo cuenta</Text>
             </TouchableOpacity>
         </SafeAreaView>
     )
@@ -74,21 +75,6 @@ const styles = StyleSheet.create({
         borderColor: colors.border, borderRadius: radius.md,
         backgroundColor: colors.surface, padding: spacing.md,
         marginBottom: spacing.lg,
-    },
-    primaryButton: {
-        backgroundColor: colors.primary, paddingVertical: spacing.md,
-        borderRadius: radius.md, alignItems: 'center', marginTop: spacing.sm,
-        marginBottom: spacing.md,
-    },
-    primaryButtonText: {
-        fontSize: typography.body, fontWeight: '600', color: '#fff',
-    },
-    secondaryButton: {
-        paddingVertical: spacing.md, borderRadius: radius.md,
-        alignItems: 'center', borderWidth: 1, borderColor: colors.border,
-    },
-    secondaryButtonText: {
-        fontSize: typography.body, fontWeight: '500', color: colors.primary,
     },
 })
 
