@@ -1,7 +1,7 @@
 {
     "expo": {
-        "name": "nudge",
-        "slug": "nudge",
+        "name": "procrastin-ar",
+        "slug": "procrastin-ar",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./assets/icon.png",

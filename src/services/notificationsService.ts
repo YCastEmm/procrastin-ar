@@ -24,7 +24,7 @@ export const programarRecordatorio = async (descripcion: string, hora: Date): Pr
 
     await Notifications.scheduleNotificationAsync({
         content: {
-            title: "Nudge",
+            title: "Procrastin-AR",
             body: `Recordatorio: "${descripcion}" sigue pendiente`,
         },
         trigger: {
@@ -38,7 +38,7 @@ export const programarRecordatorio = async (descripcion: string, hora: Date): Pr
 export const notificarTareasPendientes = async () => {
     await Notifications.scheduleNotificationAsync({
         content: {
-            title: "Nudge",
+            title: "Procrastin-AR",
             body: "Revisá tus tareas pendientes!",
         },
         trigger: {
