@@ -3,8 +3,9 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native
 import { RootStackParamList } from "../../App"
 import { useEffect, useState } from "react"
 import { Task } from "@/types/Task.type"
-import AsyncStorage from "@react-native-async-storage/async-storage"
 import TaskItem from "@/components/TaskItem"
+import { completarTarea, eliminarTarea, getTareas } from "@/services/taskService"
+import { cargarPermisoNotificaciones } from "@/services/notificationsService"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
@@ -14,29 +15,25 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
     const [listaTareas, setListaTareas] = useState<Task[]>([])
 
+    const cargarTareas = async () => {
+        const tareas = await getTareas()
+        setListaTareas(tareas)
+    }
+
     useEffect(() => {
-        const cargarTareas = async () => {
-            const stored = await AsyncStorage.getItem("tareas")
-            if (stored) {
-                setListaTareas(JSON.parse(stored))
-            }
-        }
         cargarTareas()
+        cargarPermisoNotificaciones()
     }, [])
 
 
-    const completarTarea = async (id: string) => {
-        const listaActualizada = listaTareas?.map((item) => 
-            item.id === id ? {...item, completada: true } : item
-        )
-        setListaTareas(listaActualizada)
-        await AsyncStorage.setItem("tareas", JSON.stringify(listaActualizada))
+    const handleCompletar = async (id: string) => {
+        const actualizadas = await completarTarea(id)
+        setListaTareas(actualizadas)
     }
 
-    const eliminarTarea = async (id: string) => {
-        const listaActualizada = listaTareas?.filter((item) => item.id !== id)
-        setListaTareas(listaActualizada)
-        await AsyncStorage.setItem("tareas", JSON.stringify(listaActualizada))
+    const handleEliminar = async (id: string) => {
+        const actualizadas = await eliminarTarea(id)
+        setListaTareas(actualizadas)
     }
 
 
@@ -48,7 +45,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             <FlatList
                 data={listaTareas?.filter((task) => task.completada === false)}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (<TaskItem task={item} completarTarea={completarTarea} eliminarTarea={eliminarTarea} />)}
+                renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
             />
 
 

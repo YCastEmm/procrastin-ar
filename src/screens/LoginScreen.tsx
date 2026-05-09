@@ -2,8 +2,7 @@ import { useState } from "react"
 import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native"
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from "../../App"
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Usuario } from "@/types/User.type";
+import { verificarUsuario } from "@/services/authService";
 
 type LoginScreenProps = {
     navigation: StackNavigationProp<RootStackParamList> // recibe navigation como prop que viene del stack.navigator
@@ -15,25 +14,10 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [contraseña, setContraseña] = useState<string>("")
     const [error, setError] = useState<string>("")
 
-    
-    // chequea el usuario ingresado contra el guardado en el asyncStorage
-    const verificarUsuario = async () => {
-        const storedUser = await AsyncStorage.getItem("usuario")
-        if (!storedUser) {
-            return null
-        }
-        const parsedUser: Usuario = JSON.parse(storedUser)
-
-        if (contraseña === parsedUser.contraseña && usuario === parsedUser.usuario) {
-            return true
-        } else {
-            return false
-        }
-    }
 
     // acciona segun al respuesta de verificarUsuario
     const handleLogin = async () => {
-        const successfullLogin = await verificarUsuario()
+        const successfullLogin = await verificarUsuario(usuario, contraseña)
         if (successfullLogin === null) {
             setError("El usuario no existe")
         }

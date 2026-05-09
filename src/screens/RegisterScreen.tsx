@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { guardarUsuario } from "@/services/authService"
 
 type RegisterScreenProps ={
     navigation: StackNavigationProp<RootStackParamList>
@@ -14,12 +15,8 @@ const RegisterScreen = ({navigation} : RegisterScreenProps) => {
     const [contraseña, setContraseña] = useState<string>("")
 
 
-    const guardarUsuario = async () => {
-        await AsyncStorage.setItem("usuario", JSON.stringify({usuario, contraseña}))
-    }
-
     const handleRegister = async () => {
-        await guardarUsuario()
+        await guardarUsuario(usuario, contraseña)
         navigation.navigate("Login")
     }
 

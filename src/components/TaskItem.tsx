@@ -14,17 +14,24 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
         <View>
             <Text>{task.descripcion}</Text>
             <Text>{task.fecha}</Text>
-            <TouchableOpacity
-                onPress={() => completarTarea?.(task.id)}
-            >
-                <Text>Completar</Text>
-            </TouchableOpacity>
+            
+            {
+                completarTarea &&
+                <TouchableOpacity
+                    onPress={() => completarTarea?.(task.id)}
+                >
+                    <Text>Completar</Text>
+                </TouchableOpacity>
+            }
 
-            <TouchableOpacity
-                onPress={() => eliminarTarea?.(task.id)}
-            >
-                <Text>Eliminar</Text>
-            </TouchableOpacity>
+            {
+                eliminarTarea &&
+                <TouchableOpacity
+                    onPress={() => eliminarTarea?.(task.id)}
+                >
+                    <Text>Eliminar</Text>
+                </TouchableOpacity>
+            }
         </View>
     )
 }
