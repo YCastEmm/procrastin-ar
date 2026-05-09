@@ -49,6 +49,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 data={listaTareas?.filter((task) => task.completada === false)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
+                ListEmptyComponent={<Text style={styles.emptyText}>No tenés tareas pendientes</Text>}
             />
 
             <Text style={styles.sectionHeader}>Completadas</Text>
@@ -57,6 +58,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 data={listaTareas?.filter((task) => task.completada === true)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (<TaskItem task={item} />)}
+                ListEmptyComponent={<Text style={styles.emptyText}>No hay tareas completadas</Text>}
             />
 
             <TouchableOpacity
@@ -94,6 +96,10 @@ const styles = StyleSheet.create({
     },
     list: {
         flexGrow: 0,
+    },
+    emptyText: {
+        fontSize: typography.body, color: colors.textMuted,
+        fontStyle: 'italic', paddingVertical: spacing.sm,
     },
     addButton: {
         paddingVertical: spacing.md,
