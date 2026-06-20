@@ -1,5 +1,5 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { programarRecordatorio } from "@/services/notificationsService"
@@ -28,6 +28,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const [ubicacion, setUbicacion] = useState<Task['ubicacion']>(undefined)
     const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
     const [contacto, setContacto] = useState<Task['contacto']>(undefined)
+    const [showCalendarModal, setShowCalendarModal] = useState(false)
 
     const { addTask } = useTaskStore()
 
@@ -113,28 +114,38 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
             return cal?.id ?? null
         }
         const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
-        const primary = calendars.find(c => c.isPrimary && c.allowsModifications)
+        // Preferir calendarios de cuenta (Google, etc.) sobre calendarios locales
+        const primary = calendars.find(c => c.isPrimary && c.allowsModifications && !c.source?.isLocalAccount)
+            ?? calendars.find(c => c.allowsModifications && !c.source?.isLocalAccount)
             ?? calendars.find(c => c.allowsModifications)
         return primary?.id ?? null
     }
 
-    const handleAddTask = async () => {
+    const handleAddTask = () => {
+        setShowCalendarModal(true)
+    }
+
+    const confirmarGuardar = async (conCalendario: boolean) => {
+        setShowCalendarModal(false)
         try {
             let calendarEventId: string | undefined
-            const calStatus = await requestCalendarPermission()
-            if (calStatus === 'granted') {
-                try {
-                    const calendarId = await getDefaultCalendarId()
-                    if (calendarId) {
-                        const startDate = getFechaHora()
-                        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
-                        calendarEventId = await Calendar.createEventAsync(calendarId, {
-                            title: tarea,
-                            startDate,
-                            endDate,
-                        })
-                    }
-                } catch {}
+            if (conCalendario) {
+                const calStatus = await requestCalendarPermission()
+                if (calStatus === 'granted') {
+                    try {
+                        const calendarId = await getDefaultCalendarId()
+                        if (calendarId) {
+                            const startDate = getFechaHora()
+                            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
+                            calendarEventId = await Calendar.createEventAsync(calendarId, {
+                                title: tarea,
+                                startDate,
+                                endDate,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                            })
+                        }
+                    } catch (e) { console.error('createEventAsync:', e) }
+                }
             }
 
             const nuevaTarea = {
@@ -250,6 +261,36 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
             >
                 <Text style={styles.createButtonText}>Crear tarea</Text>
             </TouchableOpacity>
+
+            <Modal
+                visible={showCalendarModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => confirmarGuardar(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>¿Agregar al calendario?</Text>
+                        <Text style={styles.modalMessage}>
+                            ¿Querés crear un evento en tu calendario para esta tarea?
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonSecondary]}
+                                onPress={() => confirmarGuardar(false)}
+                            >
+                                <Text style={styles.modalButtonSecondaryText}>No, solo guardar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonPrimary]}
+                                onPress={() => confirmarGuardar(true)}
+                            >
+                                <Text style={styles.modalButtonPrimaryText}>Sí, agregar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     )
 }
@@ -386,6 +427,58 @@ const styles = StyleSheet.create({
     },
     createButtonText: {
         fontSize: typography.body,
+        fontWeight: '600',
+        color: '#fff',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: spacing.lg,
+    },
+    modalContent: {
+        backgroundColor: colors.background,
+        borderRadius: radius.md,
+        padding: spacing.lg,
+        width: '100%',
+        gap: spacing.sm,
+    },
+    modalTitle: {
+        fontSize: typography.body,
+        fontWeight: '700',
+        color: colors.text,
+    },
+    modalMessage: {
+        fontSize: typography.body,
+        color: colors.textMuted,
+        lineHeight: 22,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginTop: spacing.sm,
+    },
+    modalButton: {
+        flex: 1,
+        paddingVertical: spacing.sm,
+        borderRadius: radius.md,
+        alignItems: 'center',
+    },
+    modalButtonSecondary: {
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    modalButtonPrimary: {
+        backgroundColor: colors.primary,
+    },
+    modalButtonSecondaryText: {
+        fontSize: typography.caption,
+        fontWeight: '500',
+        color: colors.text,
+    },
+    modalButtonPrimaryText: {
+        fontSize: typography.caption,
         fontWeight: '600',
         color: '#fff',
     },
