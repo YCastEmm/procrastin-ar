@@ -16,4 +16,5 @@ export interface Task {
         telefono?: string
     }
     calendarEventId?: string
+    prioridad?: 'alta' | 'media' | 'baja'
 }

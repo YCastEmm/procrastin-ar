@@ -29,6 +29,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const [ubicacion, setUbicacion] = useState<Task['ubicacion']>(undefined)
     const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
     const [contacto, setContacto] = useState<Task['contacto']>(undefined)
+    const [prioridad, setPrioridad] = useState<Task['prioridad']>('media')
     const [showCalendarModal, setShowCalendarModal] = useState(false)
 
     const { addTask } = useTaskStore()
@@ -158,6 +159,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                 ubicacion,
                 contacto,
                 calendarEventId,
+                prioridad,
             }
             await addTask(nuevaTarea)
             await programarRecordatorio(tarea, getFechaHora())
@@ -170,9 +172,12 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.appBrand}>
-                    Procrastin<Text style={styles.appBrandBold}>AR</Text>
-                </Text>
+                <View style={styles.logoBrandRow}>
+                    <Text style={styles.appBrand}>Procrastin</Text>
+                    <View style={styles.arBadgeSmall}>
+                        <Text style={styles.arBadgeSmallText}>AR</Text>
+                    </View>
+                </View>
                 <Text style={styles.pageTitle}>Nueva tarea</Text>
 
                 <Text style={styles.label}>Descripción</Text>
@@ -183,6 +188,21 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                     value={tarea}
                     onChangeText={setTarea}
                 />
+
+                <Text style={styles.label}>Prioridad</Text>
+                <View style={styles.prioridadRow}>
+                    {(['alta', 'media', 'baja'] as Task['prioridad'][]).map((opcion) => (
+                        <TouchableOpacity
+                            key={opcion}
+                            style={[styles.prioridadButton, prioridad === opcion && styles.prioridadButtonActive(opcion)]}
+                            onPress={() => setPrioridad(opcion)}
+                        >
+                            <Text style={[styles.prioridadText, prioridad === opcion && styles.prioridadTextActive]}>
+                                {opcion!.charAt(0).toUpperCase() + opcion!.slice(1)}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
                 <Text style={styles.label}>Recordatorio</Text>
                 <View style={styles.datetimeRow}>
@@ -334,13 +354,25 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: spacing.md,
     },
+    logoBrandRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        gap: 3,
+        marginBottom: spacing.xs,
+    },
     appBrand: {
         fontSize: 13, fontWeight: '400', color: colors.textMuted,
-        marginBottom: spacing.xs,
         letterSpacing: 0.3,
     },
-    appBrandBold: {
-        fontWeight: '700', color: colors.primary,
+    arBadgeSmall: {
+        backgroundColor: colors.primary,
+        borderRadius: 4,
+        paddingHorizontal: 4,
+        paddingVertical: 1,
+        marginBottom: 2,
+    },
+    arBadgeSmallText: {
+        fontSize: 9, fontWeight: '800', color: '#fff',
     },
     pageTitle: {
         fontSize: 28, fontWeight: '700', color: colors.text,
@@ -400,6 +432,33 @@ const styles = StyleSheet.create({
     timeValue: {
         fontSize: typography.body,
         fontWeight: '600',
+        color: colors.text,
+    },
+    prioridadRow: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginBottom: spacing.lg,
+    },
+    prioridadButton: {
+        flex: 1,
+        paddingVertical: spacing.sm,
+        borderRadius: radius.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.surface,
+        alignItems: 'center',
+    },
+    prioridadButtonActive: (opcion: Task['prioridad']) => ({
+        borderColor: opcion === 'alta' ? '#eb5757' : opcion === 'media' ? '#f59e0b' : colors.primary,
+        backgroundColor: opcion === 'alta' ? '#fef2f2' : opcion === 'media' ? '#fffbeb' : '#f0fdf4',
+    }),
+    prioridadText: {
+        fontSize: typography.caption,
+        fontWeight: '500',
+        color: colors.textMuted,
+    },
+    prioridadTextActive: {
+        fontWeight: '700',
         color: colors.text,
     },
     photoRow: {

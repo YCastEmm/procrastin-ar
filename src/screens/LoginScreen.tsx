@@ -42,9 +42,12 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.appTitle}>
-                Procrastin<Text style={styles.appTitleBold}>AR</Text>
-            </Text>
+            <View style={styles.logoRow}>
+                <Text style={styles.appTitle}>Procrastin</Text>
+                <View style={styles.arBadge}>
+                    <Text style={styles.arBadgeText}>AR</Text>
+                </View>
+            </View>
             <Text style={styles.appSubtitle}>
                 No hagas hoy lo que podés dejar para mañana
             </Text>
@@ -109,12 +112,25 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg, paddingTop: spacing.md,
         backgroundColor: colors.background,
     },
+    logoRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        gap: 4,
+        marginBottom: spacing.xs,
+    },
     appTitle: {
         fontSize: 36, fontWeight: '300', color: colors.text,
-        textAlign: 'center', marginBottom: spacing.xs,
     },
-    appTitleBold: {
-        fontWeight: '800', color: colors.primary,
+    arBadge: {
+        backgroundColor: colors.primary,
+        borderRadius: 7,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        marginBottom: 5,
+    },
+    arBadgeText: {
+        fontSize: 22, fontWeight: '800', color: '#fff',
     },
     appSubtitle: {
         fontSize: 16, fontWeight: "200",

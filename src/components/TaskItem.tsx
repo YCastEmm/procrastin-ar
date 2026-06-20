@@ -16,9 +16,18 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
         <View style={[styles.container, esCompletada && styles.containerCompleted]}>
             <View style={styles.row}>
                 <View style={styles.info}>
-                    <Text style={[styles.description, esCompletada && styles.descriptionCompleted]}>
-                        {task.descripcion}
-                    </Text>
+                    <View style={styles.descriptionRow}>
+                        <Text style={[styles.description, esCompletada && styles.descriptionCompleted]}>
+                            {task.descripcion}
+                        </Text>
+                        {task.prioridad && (
+                            <View style={[styles.prioridadBadge, styles[`prioridad_${task.prioridad}`]]}>
+                                <Text style={[styles.prioridadText, styles[`prioridadText_${task.prioridad}`]]}>
+                                    {task.prioridad.charAt(0).toUpperCase() + task.prioridad.slice(1)}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
 
                     <View style={styles.metaRow}>
                         <CalendarDays size={12} color={colors.textMuted} />
@@ -99,11 +108,50 @@ const styles = StyleSheet.create({
         height: 52,
         borderRadius: radius.md,
     },
+    descriptionRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: spacing.sm,
+        marginBottom: spacing.xs,
+    },
     description: {
+        flex: 1,
         fontSize: typography.body,
         fontWeight: '500',
         color: colors.text,
-        marginBottom: spacing.xs,
+    },
+    prioridadBadge: {
+        borderRadius: 4,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderWidth: 1,
+        flexShrink: 0,
+    },
+    prioridad_alta: {
+        backgroundColor: '#fef2f2',
+        borderColor: '#fca5a5',
+    },
+    prioridad_media: {
+        backgroundColor: '#fffbeb',
+        borderColor: '#fcd34d',
+    },
+    prioridad_baja: {
+        backgroundColor: '#f0fdf4',
+        borderColor: '#86efac',
+    },
+    prioridadText: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    prioridadText_alta: {
+        color: '#dc2626',
+    },
+    prioridadText_media: {
+        color: '#d97706',
+    },
+    prioridadText_baja: {
+        color: '#16a34a',
     },
     descriptionCompleted: {
         textDecorationLine: 'line-through',
