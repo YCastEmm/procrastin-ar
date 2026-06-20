@@ -1,9 +1,8 @@
 import * as Notifications from 'expo-notifications'
+import { requestNotificationsPermission } from '@/services/permissionsService'
 
-
-// concede los permisos para usar notificaiones
 export const pedirPermisos = async (): Promise<boolean> => {
-    const { status } = await Notifications.requestPermissionsAsync()
+    const status = await requestNotificationsPermission()
     if (status !== 'granted') return false
     await notificarTareasPendientes()
     return true
