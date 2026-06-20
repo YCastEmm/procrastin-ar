@@ -1,183 +1,220 @@
 import { useState, useEffect } from "react"
 import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native"
-import { StackNavigationProp } from '@react-navigation/stack'
+import { StackNavigationProp } from "@react-navigation/stack"
 import { RootStackParamList } from "../../App"
 import { estaLogueado } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { colors, spacing, typography, radius } from "@/themes/theme"
-import { globalStyles } from "@/themes/styles"
+import { StatusBar } from "expo-status-bar"
 import { useAuthStore } from "@/store/authStore"
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react-native"
+import { spacing } from "@/themes/theme"
 
 type LoginScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
 }
 
 const LoginScreen = ({ navigation }: LoginScreenProps) => {
-    const [usuario, setUsuario] = useState<string>("")
-    const [contraseña, setContraseña] = useState<string>("")
-    const [error, setError] = useState<string>("")
-    const [mostrarContraseña, setMostrarContraseña] = useState<boolean>(false)
+    const [usuario, setUsuario] = useState("")
+    const [contraseña, setContraseña] = useState("")
+    const [error, setError] = useState("")
+    const [mostrarContraseña, setMostrarContraseña] = useState(false)
 
     const { login } = useAuthStore()
 
     useEffect(() => {
         (async () => {
-            if (await estaLogueado()) {
-                navigation.replace("Home")
-            }
+            if (await estaLogueado()) navigation.replace("Home")
         })()
     }, [])
 
     const handleLogin = async () => {
+        setError("")
         const result = await login(usuario, contraseña)
-        if (result === null) {
-            setError("El usuario no existe")
-        } else if (result === true) {
-            navigation.replace("Home")
-        } else {
-            setError("Credenciales de acceso inválidas")
-        }
+        if (result === null) setError("El usuario no existe")
+        else if (result === true) navigation.replace("Home")
+        else setError("Credenciales de acceso inválidas")
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.logoRow}>
-                <Text style={styles.appTitle}>Procrastin</Text>
-                <View style={styles.arBadge}>
-                    <Text style={styles.arBadgeText}>AR</Text>
+            <StatusBar style="light" backgroundColor="#0d0f14" />
+
+            <View style={styles.logoSection}>
+                <View style={styles.logoRow}>
+                    <Text style={styles.appTitle}>Procrastin</Text>
+                    <View style={styles.arBadge}>
+                        <Text style={styles.arBadgeText}>AR</Text>
+                    </View>
                 </View>
-            </View>
-            <Text style={styles.appSubtitle}>
-                No hagas hoy lo que podés dejar para mañana
-            </Text>
-            <Text style={styles.iniciarSesion}>Iniciar sesión</Text>
-
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputContainer}>
-                <Mail size={16} color={colors.textMuted} />
-                <TextInput
-                    style={styles.innerInput}
-                    placeholder="Ingresá tu email"
-                    placeholderTextColor={colors.textMuted}
-                    value={usuario}
-                    onChangeText={setUsuario}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
+                <Text style={styles.appSubtitle}>
+                    No hagas hoy lo que podés dejar para mañana
+                </Text>
             </View>
 
-            <Text style={styles.label}>Contraseña</Text>
-            <View style={styles.passwordContainer}>
-                <Lock size={16} color={colors.textMuted} style={styles.lockIcon} />
-                <TextInput
-                    style={styles.passwordInput}
-                    secureTextEntry={!mostrarContraseña}
-                    placeholder="Ingresá tu contraseña"
-                    placeholderTextColor={colors.textMuted}
-                    value={contraseña}
-                    onChangeText={setContraseña}
-                />
-                <TouchableOpacity
-                    style={styles.toggleButton}
-                    onPress={() => setMostrarContraseña(!mostrarContraseña)}
-                >
-                    {mostrarContraseña
-                        ? <EyeOff size={18} color={colors.textMuted} />
-                        : <Eye size={18} color={colors.textMuted} />
-                    }
+            <View style={styles.form}>
+                <Text style={styles.formTitle}>Iniciar sesión</Text>
+
+                <Text style={styles.label}>Email</Text>
+                <View style={styles.inputRow}>
+                    <Mail size={16} color="#888" />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Ingresá tu email"
+                        placeholderTextColor="#555"
+                        value={usuario}
+                        onChangeText={setUsuario}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                </View>
+
+                <Text style={styles.label}>Contraseña</Text>
+                <View style={styles.inputRow}>
+                    <Lock size={16} color="#888" />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Ingresá tu contraseña"
+                        placeholderTextColor="#555"
+                        secureTextEntry={!mostrarContraseña}
+                        value={contraseña}
+                        onChangeText={setContraseña}
+                    />
+                    <TouchableOpacity
+                        onPress={() => setMostrarContraseña(v => !v)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        {mostrarContraseña
+                            ? <EyeOff size={18} color="#888" />
+                            : <Eye size={18} color="#888" />
+                        }
+                    </TouchableOpacity>
+                </View>
+
+                {error ? <Text style={styles.error}>{error}</Text> : null}
+
+                <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
+                    <LogIn size={16} color="#111" strokeWidth={2.5} />
+                    <Text style={styles.primaryButtonText}>Iniciar sesión</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Register")}>
+                    <Text style={styles.secondaryButtonText}>¿No tenés cuenta? Registrate</Text>
                 </TouchableOpacity>
             </View>
-
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-
-            <TouchableOpacity style={globalStyles.primaryButton} onPress={handleLogin}>
-                <View style={styles.buttonContent}>
-                    <LogIn size={16} color="#fff" />
-                    <Text style={globalStyles.primaryButtonText}>Iniciar sesión</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={globalStyles.secondaryButton}
-                onPress={() => navigation.navigate("Register")}>
-                <Text style={globalStyles.secondaryButtonText}>Registrarme</Text>
-            </TouchableOpacity>
         </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1, justifyContent: 'center',
-        paddingHorizontal: spacing.lg, paddingTop: spacing.md,
-        backgroundColor: colors.background,
+        flex: 1,
+        backgroundColor: "#0d0f14",
+        paddingHorizontal: spacing.lg,
+        justifyContent: "center",
+    },
+    logoSection: {
+        alignItems: "center",
+        marginBottom: spacing.xl + spacing.lg,
     },
     logoRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        gap: 4,
-        marginBottom: spacing.xs,
+        flexDirection: "row",
+        alignItems: "flex-end",
+        gap: 6,
+        marginBottom: spacing.sm,
     },
     appTitle: {
-        fontSize: 36, fontWeight: '300', color: colors.text,
+        fontSize: 36,
+        fontWeight: "700",
+        color: "#ffffff",
+        letterSpacing: -0.5,
     },
     arBadge: {
-        backgroundColor: colors.primary,
-        borderRadius: 7,
+        backgroundColor: "#0dcf5e",
+        borderRadius: 6,
         paddingHorizontal: 8,
-        paddingVertical: 3,
-        marginBottom: 5,
+        paddingVertical: 4,
+        marginBottom: 4,
     },
     arBadgeText: {
-        fontSize: 22, fontWeight: '800', color: '#fff',
+        fontSize: 18,
+        fontWeight: "900",
+        color: "#111",
     },
     appSubtitle: {
-        fontSize: 16, fontWeight: "200",
-        textAlign: 'center', marginBottom: spacing.xxl,
+        fontSize: 14,
+        fontWeight: "300",
+        color: "#888",
+        textAlign: "center",
     },
-    iniciarSesion: {
-        color: colors.textMuted,
-        textAlign: 'left', marginBottom: spacing.lg,
-        fontWeight: "600", fontSize: 20,
+    form: {
+        gap: 0,
+    },
+    formTitle: {
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#ffffff",
+        marginBottom: spacing.lg,
     },
     label: {
-        fontSize: typography.sectionHeader, fontWeight: '600',
-        color: colors.textMuted, textTransform: 'uppercase',
-        letterSpacing: 0.5, marginBottom: spacing.sm,
+        fontSize: 11,
+        fontWeight: "600",
+        color: "#888",
+        textTransform: "uppercase",
+        letterSpacing: 1,
+        marginBottom: spacing.sm,
     },
-    inputContainer: {
-        flexDirection: 'row', alignItems: 'center',
-        borderWidth: 1, borderColor: colors.border,
-        borderRadius: radius.md, backgroundColor: colors.surface,
-        paddingLeft: spacing.md, marginBottom: spacing.lg,
+    inputRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+        backgroundColor: "#1e2229",
+        borderWidth: 1,
+        borderColor: "#252c38",
+        borderRadius: 10,
+        paddingHorizontal: spacing.md,
+        marginBottom: spacing.md,
     },
-    innerInput: {
-        flex: 1, fontSize: typography.body, color: colors.text,
-        padding: spacing.md, paddingLeft: spacing.sm,
-    },
-    passwordContainer: {
-        flexDirection: 'row', alignItems: 'center', borderWidth: 1,
-        borderColor: colors.border, borderRadius: radius.md,
-        backgroundColor: colors.surface, marginBottom: spacing.lg,
-        paddingLeft: spacing.md,
-    },
-    lockIcon: {
-        flexShrink: 0,
-    },
-    passwordInput: {
-        flex: 1, fontSize: typography.body, color: colors.text,
-        padding: spacing.md, paddingLeft: spacing.sm,
-    },
-    toggleButton: {
-        paddingHorizontal: spacing.md, paddingVertical: spacing.md,
-    },
-    buttonContent: {
-        flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    input: {
+        flex: 1,
+        fontSize: 15,
+        color: "#ffffff",
+        paddingVertical: 14,
     },
     error: {
-        fontSize: typography.caption, color: colors.danger,
-        marginBottom: spacing.md, textAlign: 'center',
+        fontSize: 13,
+        color: "#fd6367",
+        marginBottom: spacing.md,
+        textAlign: "center",
+    },
+    primaryButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        backgroundColor: "#0dcf5e",
+        borderRadius: 12,
+        paddingVertical: 16,
+        marginTop: spacing.sm,
+        marginBottom: spacing.md,
+        shadowColor: "#0dcf5e",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 12,
+        elevation: 6,
+    },
+    primaryButtonText: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#111",
+    },
+    secondaryButton: {
+        alignItems: "center",
+        paddingVertical: spacing.md,
+    },
+    secondaryButtonText: {
+        fontSize: 14,
+        fontWeight: "500",
+        color: "#888",
     },
 })
 

@@ -10,64 +10,61 @@ import * as Contacts from "expo-contacts"
 import * as Calendar from "expo-calendar"
 import { Task } from "@/types/Task.type"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors, spacing, typography, radius } from "@/themes/theme"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { StatusBar } from "expo-status-bar"
 import { useTaskStore } from "@/store/taskStore"
-import { CalendarDays, Clock, Camera, Images, MapPin, User, Plus, CalendarCheck } from "lucide-react-native"
-
+import { spacing } from "@/themes/theme"
+import { CalendarDays, Clock, Camera, Images, MapPin, User, Plus, CalendarCheck, X, ChevronLeft } from "lucide-react-native"
 
 type AddTaskScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
 }
 
-const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
+const PRIORIDAD_COLORS: Record<string, { border: string; bg: string; text: string }> = {
+    alta:  { border: "#fd6367", bg: "#2a1416", text: "#fd6367" },
+    media: { border: "#f59e0b", bg: "#26200e", text: "#f59e0b" },
+    baja:  { border: "#0dcf5e", bg: "#0d261a", text: "#0dcf5e" },
+}
 
-    const [tarea, setTarea] = useState<string>("")
-    const [fechaElegida, setFechaElegida] = useState<Date>(new Date())
-    const [horaElegida, setHoraElegida] = useState<Date>(new Date())
+const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
+    const [tarea, setTarea] = useState("")
+    const [fechaElegida, setFechaElegida] = useState(new Date())
+    const [horaElegida, setHoraElegida] = useState(new Date())
     const [fotoUri, setFotoUri] = useState<string | undefined>()
-    const [ubicacion, setUbicacion] = useState<Task['ubicacion']>(undefined)
+    const [ubicacion, setUbicacion] = useState<Task["ubicacion"]>(undefined)
     const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
-    const [contacto, setContacto] = useState<Task['contacto']>(undefined)
-    const [prioridad, setPrioridad] = useState<Task['prioridad']>('media')
+    const [contacto, setContacto] = useState<Task["contacto"]>(undefined)
+    const [prioridad, setPrioridad] = useState<Task["prioridad"]>("media")
     const [showCalendarModal, setShowCalendarModal] = useState(false)
 
     const { addTask } = useTaskStore()
 
     const handleTomarFoto = async () => {
         const status = await requestCameraPermission()
-        if (status !== 'granted') return
+        if (status !== "granted") return
         const result = await launchCameraAsync({ quality: 0.7 })
         if (!result.canceled) setFotoUri(result.assets[0].uri)
     }
 
     const handleElegirDeGaleria = async () => {
         const status = await requestMediaLibraryPermission()
-        if (status !== 'granted') return
+        if (status !== "granted") return
         const result = await launchImageLibraryAsync({ quality: 0.7 })
         if (!result.canceled) setFotoUri(result.assets[0].uri)
     }
 
     const handleUsarUbicacion = async () => {
         const status = await requestLocationPermission()
-        if (status !== 'granted') return
+        if (status !== "granted") return
         setCargandoUbicacion(true)
         try {
-            const { coords } = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.Balanced,
-            })
+            const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
             const { latitude: lat, longitude: lng } = coords
             let direccion: string | undefined
             try {
                 const [lugar] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng })
-                if (lugar) {
-                    direccion = [lugar.street, lugar.city, lugar.region]
-                        .filter(Boolean)
-                        .join(', ')
-                }
-            } catch {
-                // reverseGeocode failed, guardamos solo coords
-            }
+                if (lugar) direccion = [lugar.street, lugar.city, lugar.region].filter(Boolean).join(", ")
+            } catch { }
             setUbicacion({ lat, lng, direccion })
         } finally {
             setCargandoUbicacion(false)
@@ -76,31 +73,26 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     const handleAsociarResponsable = async () => {
         const status = await requestContactsPermission()
-        if (status !== 'granted') return
+        if (status !== "granted") return
         const contact = await Contacts.presentContactPickerAsync()
         if (!contact) return
-        const telefono = contact.phoneNumbers?.[0]?.number ?? undefined
-        setContacto({ nombre: contact.name, telefono })
+        setContacto({ nombre: contact.name, telefono: contact.phoneNumbers?.[0]?.number ?? undefined })
     }
 
     const abrirDatePicker = () => {
         DateTimePickerAndroid.open({
             value: fechaElegida,
-            mode: 'date',
-            onChange: (event, selectedDate) => {
-                if (selectedDate) setFechaElegida(selectedDate)
-            }
+            mode: "date",
+            onChange: (_, d) => { if (d) setFechaElegida(d) },
         })
     }
 
-    const abrirPicker = () => {
+    const abrirTimePicker = () => {
         DateTimePickerAndroid.open({
             value: horaElegida,
-            mode: 'time',
+            mode: "time",
             is24Hour: true,
-            onChange: (event, selectedDate) => {
-                if (selectedDate) setHoraElegida(selectedDate)
-            }
+            onChange: (_, d) => { if (d) setHoraElegida(d) },
         })
     }
 
@@ -111,20 +103,15 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     }
 
     const getDefaultCalendarId = async (): Promise<string | null> => {
-        if (Platform.OS === 'ios') {
+        if (Platform.OS === "ios") {
             const cal = await Calendar.getDefaultCalendarAsync()
             return cal?.id ?? null
         }
         const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
-        // Preferir calendarios de cuenta (Google, etc.) sobre calendarios locales
         const primary = calendars.find(c => c.isPrimary && c.allowsModifications && !c.source?.isLocalAccount)
             ?? calendars.find(c => c.allowsModifications && !c.source?.isLocalAccount)
             ?? calendars.find(c => c.allowsModifications)
         return primary?.id ?? null
-    }
-
-    const handleAddTask = () => {
-        setShowCalendarModal(true)
     }
 
     const confirmarGuardar = async (conCalendario: boolean) => {
@@ -133,35 +120,28 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
             let calendarEventId: string | undefined
             if (conCalendario) {
                 const calStatus = await requestCalendarPermission()
-                if (calStatus === 'granted') {
+                if (calStatus === "granted") {
                     try {
                         const calendarId = await getDefaultCalendarId()
                         if (calendarId) {
                             const startDate = getFechaHora()
                             const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
                             calendarEventId = await Calendar.createEventAsync(calendarId, {
-                                title: tarea,
-                                startDate,
-                                endDate,
+                                title: tarea, startDate, endDate,
                                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                             })
                         }
-                    } catch (e) { console.error('createEventAsync:', e) }
+                    } catch (e) { console.error("createEventAsync:", e) }
                 }
             }
-
-            const nuevaTarea = {
+            await addTask({
                 id: Date.now().toString(),
-                fecha: fechaElegida.toLocaleDateString('es-AR'),
+                fecha: fechaElegida.toLocaleDateString("es-AR"),
+                hora: horaElegida.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
                 descripcion: tarea,
                 completada: false,
-                fotoUri,
-                ubicacion,
-                contacto,
-                calendarEventId,
-                prioridad,
-            }
-            await addTask(nuevaTarea)
+                fotoUri, ubicacion, contacto, calendarEventId, prioridad,
+            })
             await programarRecordatorio(tarea, getFechaHora())
             navigation.navigate("Home")
         } catch (error) {
@@ -171,143 +151,160 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                <View style={styles.logoBrandRow}>
+            <StatusBar style="light" backgroundColor="#0d0f14" />
+
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                    <ChevronLeft size={20} color="#fff" />
+                </TouchableOpacity>
+                <View style={styles.logoRow}>
                     <Text style={styles.appBrand}>Procrastin</Text>
-                    <View style={styles.arBadgeSmall}>
-                        <Text style={styles.arBadgeSmallText}>AR</Text>
+                    <View style={styles.arBadge}>
+                        <Text style={styles.arBadgeText}>AR</Text>
                     </View>
                 </View>
+                <View style={{ width: 36 }} />
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 <Text style={styles.pageTitle}>Nueva tarea</Text>
 
+                {/* Descripción */}
                 <Text style={styles.label}>Descripción</Text>
                 <TextInput
                     style={styles.textInput}
                     placeholder="¿Qué tenés que hacer?"
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor="#555"
                     value={tarea}
                     onChangeText={setTarea}
+                    multiline
                 />
 
+                {/* Prioridad */}
                 <Text style={styles.label}>Prioridad</Text>
                 <View style={styles.prioridadRow}>
-                    {(['alta', 'media', 'baja'] as Task['prioridad'][]).map((opcion) => (
-                        <TouchableOpacity
-                            key={opcion}
-                            style={[styles.prioridadButton, prioridad === opcion && styles.prioridadButtonActive(opcion)]}
-                            onPress={() => setPrioridad(opcion)}
-                        >
-                            <Text style={[styles.prioridadText, prioridad === opcion && styles.prioridadTextActive]}>
-                                {opcion!.charAt(0).toUpperCase() + opcion!.slice(1)}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    {(["alta", "media", "baja"] as Task["prioridad"][]).map(opcion => {
+                        const active = prioridad === opcion
+                        const c = PRIORIDAD_COLORS[opcion!]
+                        return (
+                            <TouchableOpacity
+                                key={opcion}
+                                style={[
+                                    styles.prioridadButton,
+                                    active && { borderColor: c.border, backgroundColor: c.bg },
+                                ]}
+                                onPress={() => setPrioridad(opcion)}
+                            >
+                                <Text style={[styles.prioridadText, active && { color: c.text, fontWeight: "700" }]}>
+                                    {opcion!.charAt(0).toUpperCase() + opcion!.slice(1)}
+                                </Text>
+                            </TouchableOpacity>
+                        )
+                    })}
                 </View>
 
+                {/* Recordatorio */}
                 <Text style={styles.label}>Recordatorio</Text>
                 <View style={styles.datetimeRow}>
-                    <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirDatePicker}>
-                        <View style={styles.timeLabelRow}>
-                            <CalendarDays size={13} color={colors.textMuted} />
-                            <Text style={styles.timeLabel}>Fecha</Text>
+                    <TouchableOpacity style={styles.datetimeCard} onPress={abrirDatePicker}>
+                        <View style={styles.datetimeLabelRow}>
+                            <CalendarDays size={12} color="#888" />
+                            <Text style={styles.datetimeLabel}>Fecha</Text>
                         </View>
-                        <Text style={styles.timeValue}>
-                            {fechaElegida.toLocaleDateString('es-AR')}
-                        </Text>
+                        <Text style={styles.datetimeValue}>{fechaElegida.toLocaleDateString("es-AR")}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirPicker}>
-                        <View style={styles.timeLabelRow}>
-                            <Clock size={13} color={colors.textMuted} />
-                            <Text style={styles.timeLabel}>Hora</Text>
+                    <TouchableOpacity style={styles.datetimeCard} onPress={abrirTimePicker}>
+                        <View style={styles.datetimeLabelRow}>
+                            <Clock size={12} color="#888" />
+                            <Text style={styles.datetimeLabel}>Hora</Text>
                         </View>
-                        <Text style={styles.timeValue}>
-                            {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                        <Text style={styles.datetimeValue}>
+                            {horaElegida.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
                         </Text>
                     </TouchableOpacity>
                 </View>
 
+                {/* Foto */}
                 <Text style={styles.label}>Foto</Text>
-                <View style={styles.photoRow}>
-                    <TouchableOpacity style={styles.photoButton} onPress={handleTomarFoto}>
-                        <View style={styles.iconButtonContent}>
-                            <Camera size={15} color={colors.primary} />
-                            <Text style={styles.photoButtonText}>Tomar foto</Text>
-                        </View>
+                <View style={styles.twoButtonRow}>
+                    <TouchableOpacity style={styles.outlineButton} onPress={handleTomarFoto}>
+                        <Camera size={15} color="#0dcf5e" />
+                        <Text style={styles.outlineButtonText}>Tomar foto</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.photoButton} onPress={handleElegirDeGaleria}>
-                        <View style={styles.iconButtonContent}>
-                            <Images size={15} color={colors.primary} />
-                            <Text style={styles.photoButtonText}>De galería</Text>
-                        </View>
+                    <TouchableOpacity style={styles.outlineButton} onPress={handleElegirDeGaleria}>
+                        <Images size={15} color="#0dcf5e" />
+                        <Text style={styles.outlineButtonText}>De galería</Text>
                     </TouchableOpacity>
                 </View>
                 {fotoUri && (
-                    <Image source={{ uri: fotoUri }} style={styles.preview} />
+                    <View style={styles.previewWrap}>
+                        <Image source={{ uri: fotoUri }} style={styles.preview} />
+                        <TouchableOpacity style={styles.previewRemove} onPress={() => setFotoUri(undefined)}>
+                            <X size={14} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
                 )}
 
+                {/* Ubicación */}
                 <Text style={styles.label}>Ubicación</Text>
                 {ubicacion ? (
-                    <View style={styles.locationRow}>
-                        <MapPin size={14} color={colors.textMuted} />
-                        <Text style={styles.locationText} numberOfLines={1}>
+                    <View style={styles.chipRow}>
+                        <MapPin size={13} color="#888" />
+                        <Text style={styles.chipText} numberOfLines={1}>
                             {ubicacion.direccion ?? `${ubicacion.lat.toFixed(5)}, ${ubicacion.lng.toFixed(5)}`}
                         </Text>
                         <TouchableOpacity onPress={() => setUbicacion(undefined)}>
-                            <Text style={styles.locationClear}>Quitar</Text>
+                            <X size={15} color="#fd6367" />
                         </TouchableOpacity>
                     </View>
                 ) : (
-                    <TouchableOpacity
-                        style={[styles.photoButton, styles.locationButton]}
-                        onPress={handleUsarUbicacion}
-                        disabled={cargandoUbicacion}
-                    >
+                    <TouchableOpacity style={styles.outlineButtonFull} onPress={handleUsarUbicacion} disabled={cargandoUbicacion}>
                         {cargandoUbicacion
-                            ? <ActivityIndicator size="small" color={colors.primary} />
-                            : (
-                                <View style={styles.iconButtonContent}>
-                                    <MapPin size={15} color={colors.primary} />
-                                    <Text style={styles.photoButtonText}>Usar ubicación actual</Text>
-                                </View>
-                            )
+                            ? <ActivityIndicator size="small" color="#0dcf5e" />
+                            : <>
+                                <MapPin size={15} color="#0dcf5e" />
+                                <Text style={styles.outlineButtonText}>Usar ubicación actual</Text>
+                            </>
                         }
                     </TouchableOpacity>
                 )}
 
+                {/* Responsable */}
                 <Text style={styles.label}>Responsable</Text>
                 {contacto ? (
-                    <View style={styles.locationRow}>
-                        <User size={14} color={colors.textMuted} />
-                        <Text style={styles.locationText} numberOfLines={1}>
-                            {contacto.nombre}{contacto.telefono ? ` · ${contacto.telefono}` : ''}
+                    <View style={styles.chipRow}>
+                        <User size={13} color="#888" />
+                        <Text style={styles.chipText} numberOfLines={1}>
+                            {contacto.nombre}{contacto.telefono ? `  ·  ${contacto.telefono}` : ""}
                         </Text>
                         <TouchableOpacity onPress={() => setContacto(undefined)}>
-                            <Text style={styles.locationClear}>Quitar</Text>
+                            <X size={15} color="#fd6367" />
                         </TouchableOpacity>
                     </View>
                 ) : (
-                    <TouchableOpacity
-                        style={[styles.photoButton, styles.locationButton]}
-                        onPress={handleAsociarResponsable}
-                    >
-                        <View style={styles.iconButtonContent}>
-                            <User size={15} color={colors.primary} />
-                            <Text style={styles.photoButtonText}>Asociar responsable</Text>
-                        </View>
+                    <TouchableOpacity style={styles.outlineButtonFull} onPress={handleAsociarResponsable}>
+                        <User size={15} color="#0dcf5e" />
+                        <Text style={styles.outlineButtonText}>Asociar responsable</Text>
                     </TouchableOpacity>
                 )}
+
+                <View style={{ height: spacing.lg }} />
             </ScrollView>
 
-            <TouchableOpacity
-                style={styles.createButton}
-                onPress={handleAddTask}
-            >
-                <View style={styles.createButtonContent}>
-                    <Plus size={18} color="#fff" />
-                    <Text style={styles.createButtonText}>Crear tarea</Text>
-                </View>
-            </TouchableOpacity>
+            {/* Botón crear */}
+            <View style={styles.bottomBar}>
+                <TouchableOpacity
+                    style={[styles.createButton, !tarea.trim() && styles.createButtonDisabled]}
+                    onPress={() => setShowCalendarModal(true)}
+                    disabled={!tarea.trim()}
+                >
+                    <Plus size={18} color={tarea.trim() ? "#111" : "#0d2e1a"} strokeWidth={2.5} />
+                    <Text style={[styles.createButtonText, !tarea.trim() && { color: "#0d2e1a" }]}>Crear tarea</Text>
+                </TouchableOpacity>
+            </View>
 
+            {/* Modal calendario */}
             <Modal
                 visible={showCalendarModal}
                 transparent
@@ -315,9 +312,9 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                 onRequestClose={() => confirmarGuardar(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
+                    <View style={styles.modalCard}>
                         <View style={styles.modalTitleRow}>
-                            <CalendarCheck size={18} color={colors.primary} />
+                            <CalendarCheck size={18} color="#0dcf5e" />
                             <Text style={styles.modalTitle}>¿Agregar al calendario?</Text>
                         </View>
                         <Text style={styles.modalMessage}>
@@ -325,16 +322,16 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                         </Text>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonSecondary]}
+                                style={styles.modalBtnSecondary}
                                 onPress={() => confirmarGuardar(false)}
                             >
-                                <Text style={styles.modalButtonSecondaryText}>No, solo guardar</Text>
+                                <Text style={styles.modalBtnSecondaryText}>No, solo guardar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonPrimary]}
+                                style={styles.modalBtnPrimary}
                                 onPress={() => confirmarGuardar(true)}
                             >
-                                <Text style={styles.modalButtonPrimaryText}>Sí, agregar</Text>
+                                <Text style={styles.modalBtnPrimaryText}>Sí, agregar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -347,254 +344,291 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: "#0d0f14",
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
+        paddingBottom: spacing.sm,
     },
-    scrollContent: {
-        paddingBottom: spacing.md,
+    backButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#1e2229",
+        alignItems: "center",
+        justifyContent: "center",
     },
-    logoBrandRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        gap: 3,
-        marginBottom: spacing.xs,
+    logoRow: {
+        flexDirection: "row",
+        alignItems: "flex-end",
+        gap: 4,
     },
     appBrand: {
-        fontSize: 13, fontWeight: '400', color: colors.textMuted,
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#888",
         letterSpacing: 0.3,
     },
-    arBadgeSmall: {
-        backgroundColor: colors.primary,
+    arBadge: {
+        backgroundColor: "#0dcf5e",
         borderRadius: 4,
-        paddingHorizontal: 4,
+        paddingHorizontal: 5,
         paddingVertical: 1,
         marginBottom: 2,
     },
-    arBadgeSmallText: {
-        fontSize: 9, fontWeight: '800', color: '#fff',
+    arBadgeText: {
+        fontSize: 10,
+        fontWeight: "900",
+        color: "#111",
+    },
+    scrollContent: {
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.md,
     },
     pageTitle: {
-        fontSize: 28, fontWeight: '700', color: colors.text,
+        fontSize: 26,
+        fontWeight: "700",
+        color: "#ffffff",
+        letterSpacing: -0.5,
         marginBottom: spacing.lg,
+        marginTop: spacing.sm,
     },
     label: {
         fontSize: 11,
-        fontWeight: '700',
-        color: colors.textMuted,
-        textTransform: 'uppercase',
-        letterSpacing: 0.8,
-        marginTop: spacing.sm,
+        fontWeight: "600",
+        color: "#888",
+        textTransform: "uppercase",
+        letterSpacing: 1,
         marginBottom: spacing.sm,
+        marginTop: spacing.sm,
     },
     textInput: {
-        fontSize: typography.body,
-        color: colors.text,
+        fontSize: 15,
+        color: "#ffffff",
+        backgroundColor: "#1e2229",
         borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        backgroundColor: colors.surface,
+        borderColor: "#252c38",
+        borderRadius: 10,
         padding: spacing.md,
-        marginBottom: spacing.lg,
-    },
-    datetimeRow: {
-        flexDirection: 'row',
-        gap: spacing.sm,
-        marginBottom: spacing.lg,
-    },
-    datetimeField: {
-        flex: 1,
-        marginBottom: 0,
-    },
-    timeRow: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 4,
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        backgroundColor: colors.surface,
-        padding: spacing.md,
-        marginBottom: spacing.lg,
-    },
-    timeLabelRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    timeLabel: {
-        fontSize: 11,
-        fontWeight: '600',
-        color: colors.textMuted,
-        textTransform: 'uppercase',
-        letterSpacing: 0.4,
-    },
-    timeValue: {
-        fontSize: typography.body,
-        fontWeight: '600',
-        color: colors.text,
+        marginBottom: spacing.sm,
+        minHeight: 52,
     },
     prioridadRow: {
-        flexDirection: 'row',
+        flexDirection: "row",
         gap: spacing.sm,
-        marginBottom: spacing.lg,
+        marginBottom: spacing.sm,
     },
     prioridadButton: {
         flex: 1,
-        paddingVertical: spacing.sm,
-        borderRadius: radius.md,
+        paddingVertical: 10,
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface,
-        alignItems: 'center',
+        borderColor: "#252c38",
+        backgroundColor: "#1e2229",
+        alignItems: "center",
     },
-    prioridadButtonActive: (opcion: Task['prioridad']) => ({
-        borderColor: opcion === 'alta' ? '#eb5757' : opcion === 'media' ? '#f59e0b' : colors.primary,
-        backgroundColor: opcion === 'alta' ? '#fef2f2' : opcion === 'media' ? '#fffbeb' : '#f0fdf4',
-    }),
     prioridadText: {
-        fontSize: typography.caption,
-        fontWeight: '500',
-        color: colors.textMuted,
+        fontSize: 13,
+        fontWeight: "500",
+        color: "#888",
     },
-    prioridadTextActive: {
-        fontWeight: '700',
-        color: colors.text,
-    },
-    photoRow: {
-        flexDirection: 'row',
+    datetimeRow: {
+        flexDirection: "row",
         gap: spacing.sm,
-        marginBottom: spacing.md,
+        marginBottom: spacing.sm,
     },
-    photoButton: {
+    datetimeCard: {
         flex: 1,
-        paddingVertical: spacing.sm,
-        borderRadius: radius.md,
+        backgroundColor: "#1e2229",
         borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
+        borderColor: "#252c38",
+        borderRadius: 10,
+        padding: spacing.md,
+        gap: 4,
     },
-    iconButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.xs,
+    datetimeLabelRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
     },
-    photoButtonText: {
-        fontSize: typography.caption,
-        fontWeight: '500',
-        color: colors.text,
+    datetimeLabel: {
+        fontSize: 11,
+        fontWeight: "600",
+        color: "#888",
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+    },
+    datetimeValue: {
+        fontSize: 15,
+        fontWeight: "600",
+        color: "#ffffff",
+    },
+    twoButtonRow: {
+        flexDirection: "row",
+        gap: spacing.sm,
+        marginBottom: spacing.sm,
+    },
+    outlineButton: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        backgroundColor: "#1e2229",
+        borderWidth: 1,
+        borderColor: "#252c38",
+        borderRadius: 10,
+        paddingVertical: 11,
+    },
+    outlineButtonFull: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        backgroundColor: "#1e2229",
+        borderWidth: 1,
+        borderColor: "#252c38",
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingHorizontal: spacing.md,
+        marginBottom: spacing.sm,
+    },
+    outlineButtonText: {
+        fontSize: 13,
+        fontWeight: "500",
+        color: "#ffffff",
+    },
+    previewWrap: {
+        position: "relative",
+        alignSelf: "flex-start",
+        marginBottom: spacing.sm,
     },
     preview: {
-        width: 80,
-        height: 80,
-        borderRadius: radius.md,
-        marginBottom: spacing.md,
+        width: 90,
+        height: 90,
+        borderRadius: 10,
     },
-    locationButton: {
-        flex: 0,
-        alignSelf: 'flex-start',
-        paddingHorizontal: spacing.md,
-        marginBottom: spacing.lg,
+    previewRemove: {
+        position: "absolute",
+        top: -6,
+        right: -6,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        backgroundColor: "#fd6367",
+        alignItems: "center",
+        justifyContent: "center",
     },
-    locationRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    chipRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        backgroundColor: "#1e2229",
         borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        backgroundColor: colors.surface,
+        borderColor: "#252c38",
+        borderRadius: 10,
         paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        marginBottom: spacing.lg,
-        gap: spacing.sm,
+        paddingVertical: 11,
+        marginBottom: spacing.sm,
     },
-    locationText: {
+    chipText: {
         flex: 1,
-        fontSize: typography.caption,
-        color: colors.text,
+        fontSize: 13,
+        color: "#ffffff",
     },
-    locationClear: {
-        fontSize: typography.caption,
-        color: colors.danger,
-        fontWeight: '500',
+    bottomBar: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.sm,
+        paddingBottom: spacing.md,
+        backgroundColor: "#0d0f14",
     },
     createButton: {
-        backgroundColor: colors.primary,
-        paddingVertical: spacing.md,
-        borderRadius: radius.md,
-        alignItems: 'center',
-        marginTop: spacing.sm,
-        marginBottom: spacing.md,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        backgroundColor: "#0dcf5e",
+        borderRadius: 12,
+        paddingVertical: 16,
+        shadowColor: "#0dcf5e",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 12,
+        elevation: 6,
     },
-    createButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
+    createButtonDisabled: {
+        backgroundColor: "#0a7a38",
+        shadowOpacity: 0,
+        elevation: 0,
     },
     createButtonText: {
-        fontSize: typography.body,
-        fontWeight: '600',
-        color: '#fff',
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#111",
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.45)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0,0,0,0.65)",
+        justifyContent: "center",
+        alignItems: "center",
         paddingHorizontal: spacing.lg,
     },
-    modalContent: {
-        backgroundColor: colors.background,
-        borderRadius: radius.md,
+    modalCard: {
+        backgroundColor: "#1e2229",
+        borderWidth: 1,
+        borderColor: "#252c38",
+        borderRadius: 14,
         padding: spacing.lg,
-        width: '100%',
+        width: "100%",
         gap: spacing.sm,
     },
     modalTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         gap: spacing.sm,
     },
     modalTitle: {
-        fontSize: typography.body,
-        fontWeight: '700',
-        color: colors.text,
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#ffffff",
     },
     modalMessage: {
-        fontSize: typography.body,
-        color: colors.textMuted,
+        fontSize: 14,
+        color: "#888",
         lineHeight: 22,
     },
     modalButtons: {
-        flexDirection: 'row',
+        flexDirection: "row",
         gap: spacing.sm,
         marginTop: spacing.sm,
     },
-    modalButton: {
+    modalBtnSecondary: {
         flex: 1,
-        paddingVertical: spacing.sm,
-        borderRadius: radius.md,
-        alignItems: 'center',
-    },
-    modalButtonSecondary: {
+        paddingVertical: 11,
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: "#252c38",
+        alignItems: "center",
     },
-    modalButtonPrimary: {
-        backgroundColor: colors.primary,
+    modalBtnPrimary: {
+        flex: 1,
+        paddingVertical: 11,
+        borderRadius: 10,
+        backgroundColor: "#0dcf5e",
+        alignItems: "center",
     },
-    modalButtonSecondaryText: {
-        fontSize: typography.caption,
-        fontWeight: '500',
-        color: colors.text,
+    modalBtnSecondaryText: {
+        fontSize: 13,
+        fontWeight: "500",
+        color: "#888",
     },
-    modalButtonPrimaryText: {
-        fontSize: typography.caption,
-        fontWeight: '600',
-        color: '#fff',
+    modalBtnPrimaryText: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#111",
     },
 })
 

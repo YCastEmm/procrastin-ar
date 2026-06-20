@@ -12,7 +12,7 @@ export const saveTareas = async (tareas: Task[]) => {
 
 export const completarTarea = async (id: string) => {
     const tareas = await getTareas();
-    const actualizadas = tareas.map((item: Task) => (item.id === id ? { ...item, completada: true } : item));
+    const actualizadas = tareas.map((item: Task) => (item.id === id ? { ...item, completada: !item.completada } : item));
     await saveTareas(actualizadas);
     return actualizadas;
 };

@@ -1,7 +1,8 @@
+import { useState } from "react"
 import { Task } from "@/types/Task.type"
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native"
-import { colors, spacing, typography, radius } from "@/themes/theme"
-import { CalendarDays, MapPin, User, Check, Trash2 } from "lucide-react-native"
+import { CalendarDays, Clock, Check, ChevronDown, MapPin, User, CalendarCheck, Trash2 } from "lucide-react-native"
+import { spacing } from "@/themes/theme"
 
 type TaskItemProps = {
     task: Task
@@ -9,35 +10,94 @@ type TaskItemProps = {
     eliminarTarea?: (value: string) => void
 }
 
+const PRIORITY_BORDER: Record<string, string> = {
+    alta: "#fd6367",
+    media: "#f59e0b",
+    baja: "#0dcf5e",
+}
+
+const PRIORITY_DOT: Record<string, string> = {
+    alta: "#fd6367",
+    media: "#f59e0b",
+    baja: "#0dcf5e",
+}
+
 const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
+    const [expanded, setExpanded] = useState(false)
     const esCompletada = task.completada
+    const borderColor = task.prioridad ? PRIORITY_BORDER[task.prioridad] : "#252c38"
+    const dotColor = task.prioridad ? PRIORITY_DOT[task.prioridad] : "#888"
+
+    const hasDetails = !!(task.fotoUri || task.ubicacion || task.contacto || task.calendarEventId)
 
     return (
-        <View style={[styles.container, esCompletada && styles.containerCompleted]}>
+        <View style={[styles.container, { borderTopColor: borderColor }]}>
+            {/* Main row */}
             <View style={styles.row}>
-                <View style={styles.info}>
-                    <View style={styles.descriptionRow}>
-                        <Text style={[styles.description, esCompletada && styles.descriptionCompleted]}>
-                            {task.descripcion}
-                        </Text>
+                <TouchableOpacity
+                    style={styles.checkWrap}
+                    onPress={() => completarTarea?.(task.id)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <View style={[styles.checkCircle, esCompletada && styles.checkCircleFilled]}>
+                        {esCompletada && <Check size={12} color="#111" strokeWidth={3} />}
+                    </View>
+                </TouchableOpacity>
+
+                <View style={styles.content}>
+                    <Text
+                        style={[styles.description, esCompletada && styles.descriptionCompleted]}
+                        numberOfLines={expanded ? undefined : 2}
+                    >
+                        {task.descripcion}
+                    </Text>
+                    <View style={styles.metaRow}>
                         {task.prioridad && (
-                            <View style={[styles.prioridadBadge, styles[`prioridad_${task.prioridad}`]]}>
-                                <Text style={[styles.prioridadText, styles[`prioridadText_${task.prioridad}`]]}>
+                            <>
+                                <View style={[styles.dot, { backgroundColor: dotColor }]} />
+                                <Text style={[styles.prioridadLabel, { color: dotColor }]}>
                                     {task.prioridad.charAt(0).toUpperCase() + task.prioridad.slice(1)}
                                 </Text>
-                            </View>
+                                <Text style={styles.metaSep}>·</Text>
+                            </>
+                        )}
+                        <CalendarDays size={11} color="#888" />
+                        <Text style={styles.metaText}>{task.fecha}</Text>
+                        {task.hora && (
+                            <>
+                                <Text style={styles.metaSep}>·</Text>
+                                <Clock size={11} color="#888" />
+                                <Text style={styles.metaText}>{task.hora}</Text>
+                            </>
                         )}
                     </View>
+                </View>
 
-                    <View style={styles.metaRow}>
-                        <CalendarDays size={12} color={colors.textMuted} />
-                        <Text style={styles.metaText}>{task.fecha}</Text>
-                    </View>
+                <TouchableOpacity
+                    onPress={() => setExpanded(v => !v)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <ChevronDown
+                        size={18}
+                        color="#555"
+                        style={{ transform: [{ rotate: expanded ? "180deg" : "0deg" }] }}
+                    />
+                </TouchableOpacity>
+            </View>
+
+            {/* Expanded detail panel */}
+            {expanded && (
+                <View style={styles.details}>
+                    {hasDetails && <View style={styles.detailsDivider} />}
+
+                    {task.fotoUri && (
+                        <Image source={{ uri: task.fotoUri }} style={styles.photo} resizeMode="cover" />
+                    )}
 
                     {task.ubicacion && (
-                        <View style={styles.metaRow}>
-                            <MapPin size={12} color={colors.textMuted} />
-                            <Text style={styles.metaText} numberOfLines={1}>
+                        <View style={styles.detailRow}>
+                            <MapPin size={13} color="#888" />
+                            <Text style={styles.detailText}>
                                 {task.ubicacion.direccion
                                     ?? `${task.ubicacion.lat.toFixed(5)}, ${task.ubicacion.lng.toFixed(5)}`}
                             </Text>
@@ -45,36 +105,29 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
                     )}
 
                     {task.contacto && (
-                        <View style={styles.metaRow}>
-                            <User size={12} color={colors.textMuted} />
-                            <Text style={styles.metaText} numberOfLines={1}>
+                        <View style={styles.detailRow}>
+                            <User size={13} color="#888" />
+                            <Text style={styles.detailText}>
                                 {task.contacto.nombre}
+                                {task.contacto.telefono ? `  ·  ${task.contacto.telefono}` : ""}
                             </Text>
                         </View>
                     )}
-                </View>
-                {task.fotoUri && (
-                    <Image source={{ uri: task.fotoUri }} style={styles.thumbnail} />
-                )}
-            </View>
 
-            {(completarTarea || eliminarTarea) && (
-                <View style={styles.actions}>
-                    {completarTarea && (
-                        <TouchableOpacity
-                            style={styles.completeButton}
-                            onPress={() => completarTarea?.(task.id)}
-                        >
-                            <Check size={13} color={colors.success} />
-                            <Text style={styles.completeText}>Completar</Text>
-                        </TouchableOpacity>
+                    {task.calendarEventId && (
+                        <View style={styles.detailRow}>
+                            <CalendarCheck size={13} color="#888" />
+                            <Text style={styles.detailText}>Agregado al calendario</Text>
+                        </View>
                     )}
+
                     {eliminarTarea && (
                         <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={() => eliminarTarea?.(task.id)}
+                            style={styles.deleteRow}
+                            onPress={() => eliminarTarea(task.id)}
                         >
-                            <Trash2 size={14} color={colors.textMuted} />
+                            <Trash2 size={13} color="#fd6367" />
+                            <Text style={styles.deleteText}>Eliminar tarea</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -85,116 +138,107 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: colors.surface,
-        borderRadius: radius.md + 2,
-        borderWidth: 1,
-        borderColor: colors.border,
-        padding: spacing.md,
-        marginBottom: spacing.sm,
-    },
-    containerCompleted: {
-        opacity: 0.55,
+        backgroundColor: "#1e2229",
+        borderRadius: 12,
+        borderTopWidth: 2,
+        padding: 14,
+        marginBottom: 10,
     },
     row: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: spacing.sm,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
     },
-    info: {
+    checkWrap: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    checkCircle: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        borderWidth: 2,
+        borderColor: "#ffffff",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    checkCircleFilled: {
+        backgroundColor: "#0dcf5e",
+        borderColor: "#0dcf5e",
+    },
+    content: {
         flex: 1,
-    },
-    thumbnail: {
-        width: 52,
-        height: 52,
-        borderRadius: radius.md,
-    },
-    descriptionRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: spacing.sm,
-        marginBottom: spacing.xs,
     },
     description: {
-        flex: 1,
-        fontSize: typography.body,
-        fontWeight: '500',
-        color: colors.text,
-    },
-    prioridadBadge: {
-        borderRadius: 4,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderWidth: 1,
-        flexShrink: 0,
-    },
-    prioridad_alta: {
-        backgroundColor: '#fef2f2',
-        borderColor: '#fca5a5',
-    },
-    prioridad_media: {
-        backgroundColor: '#fffbeb',
-        borderColor: '#fcd34d',
-    },
-    prioridad_baja: {
-        backgroundColor: '#f0fdf4',
-        borderColor: '#86efac',
-    },
-    prioridadText: {
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    prioridadText_alta: {
-        color: '#dc2626',
-    },
-    prioridadText_media: {
-        color: '#d97706',
-    },
-    prioridadText_baja: {
-        color: '#16a34a',
+        fontSize: 15,
+        fontWeight: "500",
+        color: "#ffffff",
+        marginBottom: 4,
     },
     descriptionCompleted: {
-        textDecorationLine: 'line-through',
-        color: colors.textMuted,
+        textDecorationLine: "line-through",
+        color: "#888",
     },
     metaRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         gap: 4,
-        marginTop: 3,
+    },
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+    },
+    prioridadLabel: {
+        fontSize: 12,
+        fontWeight: "600",
+    },
+    metaSep: {
+        fontSize: 12,
+        color: "#555",
     },
     metaText: {
+        fontSize: 12,
+        color: "#888",
+    },
+    details: {
+        marginTop: 10,
+        gap: 8,
+    },
+    detailsDivider: {
+        height: 1,
+        backgroundColor: "#252c38",
+        marginBottom: 4,
+    },
+    photo: {
+        width: "100%",
+        height: 160,
+        borderRadius: 8,
+    },
+    detailRow: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: 8,
+    },
+    detailText: {
         flex: 1,
-        fontSize: typography.caption,
-        color: colors.textMuted,
+        fontSize: 13,
+        color: "#aaa",
+        lineHeight: 18,
     },
-    actions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: spacing.sm,
-        paddingTop: spacing.sm,
+    deleteRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        marginTop: 4,
+        paddingTop: 8,
         borderTopWidth: 1,
-        borderTopColor: colors.border,
+        borderTopColor: "#252c38",
     },
-    completeButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        paddingHorizontal: spacing.sm,
-        paddingVertical: spacing.xs,
-        borderRadius: radius.sm,
-        borderWidth: 1,
-        borderColor: colors.success,
-    },
-    completeText: {
-        fontSize: typography.caption,
-        color: colors.success,
-        fontWeight: '500',
-    },
-    deleteButton: {
-        paddingHorizontal: spacing.sm,
-        paddingVertical: spacing.xs,
+    deleteText: {
+        fontSize: 13,
+        fontWeight: "500",
+        color: "#fd6367",
     },
 })
 
