@@ -9,6 +9,7 @@ import { colors, spacing, typography } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
 import { useTaskStore } from "@/store/taskStore"
 import { useAuthStore } from "@/store/authStore"
+import { Plus, LogOut, Trash2 } from "lucide-react-native"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -36,7 +37,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         await clearCompleted()
     }
 
-
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
@@ -56,7 +56,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 <View style={styles.sectionRow}>
                     <Text style={styles.sectionHeader}>Completadas</Text>
                     {tasks.some(t => t.completada) && (
-                        <TouchableOpacity onPress={handleLimpiarCompletadas}>
+                        <TouchableOpacity style={styles.clearButton} onPress={handleLimpiarCompletadas}>
+                            <Trash2 size={13} color={colors.textMuted} />
                             <Text style={styles.clearText}>Limpiar</Text>
                         </TouchableOpacity>
                     )}
@@ -75,7 +76,10 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                     style={globalStyles.primaryButton}
                     onPress={() => navigation.navigate("AddTask")}
                 >
-                    <Text style={globalStyles.primaryButtonText}>+ Agregar tarea</Text>
+                    <View style={styles.buttonContent}>
+                        <Plus size={18} color="#fff" />
+                        <Text style={globalStyles.primaryButtonText}>Agregar tarea</Text>
+                    </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={globalStyles.secondaryButton}
@@ -83,7 +87,10 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                         await logout()
                         navigation.replace("Login")
                     }}>
-                    <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>
+                    <View style={styles.buttonContent}>
+                        <LogOut size={16} color={colors.primary} />
+                        <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>
+                    </View>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -117,12 +124,16 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
     },
     sectionRow: {
-        flexDirection: 'row', alignItems: 'baseline',
+        flexDirection: 'row', alignItems: 'center',
         justifyContent: 'space-between', marginTop: spacing.md,
     },
+    clearButton: {
+        flexDirection: 'row', alignItems: 'center', gap: 4,
+        marginBottom: spacing.sm,
+    },
     clearText: {
-        fontSize: typography.caption, fontWeight: '600',
-        color: colors.primary, marginBottom: spacing.sm,
+        fontSize: typography.caption, fontWeight: '500',
+        color: colors.textMuted,
     },
     list: {
         flexGrow: 0,
@@ -133,6 +144,9 @@ const styles = StyleSheet.create({
     },
     bottomButtons: {
         paddingTop: spacing.md, gap: spacing.sm,
+    },
+    buttonContent: {
+        flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     },
 })
 

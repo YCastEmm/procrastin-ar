@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/authStore"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
+import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react-native"
 
 type RegisterScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -51,18 +52,22 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
             <Text style={styles.title}>Crear cuenta</Text>
 
             <Text style={styles.label}>Email</Text>
-            <TextInput
-                style={styles.textInput}
-                placeholder="Ingresá tu email"
-                placeholderTextColor={colors.textMuted}
-                value={usuario}
-                onChangeText={setUsuario}
-                keyboardType="email-address"
-                autoCapitalize="none"
-            />
+            <View style={styles.inputContainer}>
+                <Mail size={16} color={colors.textMuted} />
+                <TextInput
+                    style={styles.innerInput}
+                    placeholder="Ingresá tu email"
+                    placeholderTextColor={colors.textMuted}
+                    value={usuario}
+                    onChangeText={setUsuario}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                />
+            </View>
 
             <Text style={styles.label}>Contraseña</Text>
             <View style={styles.passwordContainer}>
+                <Lock size={16} color={colors.textMuted} />
                 <TextInput
                     style={styles.passwordInput}
                     secureTextEntry={!mostrarContraseña}
@@ -71,16 +76,20 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
                     value={contraseña}
                     onChangeText={setContraseña}
                 />
-                <TouchableOpacity style={styles.toggleButton}
-                    onPress={() => setMostrarContraseña(!mostrarContraseña)}>
-                    <Text style={styles.toggleText}>
-                        {mostrarContraseña ? "Ocultar" : "Mostrar"}
-                    </Text>
+                <TouchableOpacity
+                    style={styles.toggleButton}
+                    onPress={() => setMostrarContraseña(!mostrarContraseña)}
+                >
+                    {mostrarContraseña
+                        ? <EyeOff size={18} color={colors.textMuted} />
+                        : <Eye size={18} color={colors.textMuted} />
+                    }
                 </TouchableOpacity>
             </View>
 
             <Text style={styles.label}>Confirmar contraseña</Text>
             <View style={styles.passwordContainer}>
+                <Lock size={16} color={colors.textMuted} />
                 <TextInput
                     style={styles.passwordInput}
                     secureTextEntry={!mostrarConfirmacion}
@@ -89,18 +98,24 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
                     value={confirmarContraseña}
                     onChangeText={setConfirmarContraseña}
                 />
-                <TouchableOpacity style={styles.toggleButton}
-                    onPress={() => setMostrarConfirmacion(!mostrarConfirmacion)}>
-                    <Text style={styles.toggleText}>
-                        {mostrarConfirmacion ? "Ocultar" : "Mostrar"}
-                    </Text>
+                <TouchableOpacity
+                    style={styles.toggleButton}
+                    onPress={() => setMostrarConfirmacion(!mostrarConfirmacion)}
+                >
+                    {mostrarConfirmacion
+                        ? <EyeOff size={18} color={colors.textMuted} />
+                        : <Eye size={18} color={colors.textMuted} />
+                    }
                 </TouchableOpacity>
             </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <TouchableOpacity style={globalStyles.primaryButton} onPress={handleRegister}>
-                <Text style={globalStyles.primaryButtonText}>Crear usuario</Text>
+                <View style={styles.buttonContent}>
+                    <UserPlus size={16} color="#fff" />
+                    <Text style={globalStyles.primaryButtonText}>Crear usuario</Text>
+                </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={globalStyles.secondaryButton}
@@ -126,26 +141,31 @@ const styles = StyleSheet.create({
         color: colors.textMuted, textTransform: 'uppercase',
         letterSpacing: 0.5, marginBottom: spacing.sm,
     },
-    textInput: {
-        fontSize: typography.body, color: colors.text, borderWidth: 1,
-        borderColor: colors.border, borderRadius: radius.md,
-        backgroundColor: colors.surface, padding: spacing.md,
-        marginBottom: spacing.lg,
+    inputContainer: {
+        flexDirection: 'row', alignItems: 'center',
+        borderWidth: 1, borderColor: colors.border,
+        borderRadius: radius.md, backgroundColor: colors.surface,
+        paddingLeft: spacing.md, marginBottom: spacing.lg,
+    },
+    innerInput: {
+        flex: 1, fontSize: typography.body, color: colors.text,
+        padding: spacing.md, paddingLeft: spacing.sm,
     },
     passwordContainer: {
         flexDirection: 'row', alignItems: 'center', borderWidth: 1,
         borderColor: colors.border, borderRadius: radius.md,
         backgroundColor: colors.surface, marginBottom: spacing.lg,
+        paddingLeft: spacing.md,
     },
     passwordInput: {
         flex: 1, fontSize: typography.body, color: colors.text,
-        padding: spacing.md,
+        padding: spacing.md, paddingLeft: spacing.sm,
     },
     toggleButton: {
         paddingHorizontal: spacing.md, paddingVertical: spacing.md,
     },
-    toggleText: {
-        fontSize: typography.caption, fontWeight: '600', color: colors.primary,
+    buttonContent: {
+        flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     },
     error: {
         fontSize: typography.caption, color: colors.danger,
@@ -154,5 +174,3 @@ const styles = StyleSheet.create({
 })
 
 export default RegisterScreen
-
-

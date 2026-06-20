@@ -1,6 +1,7 @@
 import { Task } from "@/types/Task.type"
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native"
 import { colors, spacing, typography, radius } from "@/themes/theme"
+import { CalendarDays, MapPin, User, Check, Trash2 } from "lucide-react-native"
 
 type TaskItemProps = {
     task: Task
@@ -15,17 +16,29 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
             <View style={styles.row}>
                 <View style={styles.info}>
                     <Text style={styles.description}>{task.descripcion}</Text>
-                    <Text style={styles.date}>{task.fecha}</Text>
+
+                    <View style={styles.metaRow}>
+                        <CalendarDays size={12} color={colors.textMuted} />
+                        <Text style={styles.metaText}>{task.fecha}</Text>
+                    </View>
+
                     {task.ubicacion && (
-                        <Text style={styles.location} numberOfLines={1}>
-                            {task.ubicacion.direccion
-                                ?? `${task.ubicacion.lat.toFixed(5)}, ${task.ubicacion.lng.toFixed(5)}`}
-                        </Text>
+                        <View style={styles.metaRow}>
+                            <MapPin size={12} color={colors.textMuted} />
+                            <Text style={styles.metaText} numberOfLines={1}>
+                                {task.ubicacion.direccion
+                                    ?? `${task.ubicacion.lat.toFixed(5)}, ${task.ubicacion.lng.toFixed(5)}`}
+                            </Text>
+                        </View>
                     )}
+
                     {task.contacto && (
-                        <Text style={styles.location} numberOfLines={1}>
-                            {task.contacto.nombre}
-                        </Text>
+                        <View style={styles.metaRow}>
+                            <User size={12} color={colors.textMuted} />
+                            <Text style={styles.metaText} numberOfLines={1}>
+                                {task.contacto.nombre}
+                            </Text>
+                        </View>
                     )}
                 </View>
                 {task.fotoUri && (
@@ -40,6 +53,7 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
                             style={styles.completeButton}
                             onPress={() => completarTarea?.(task.id)}
                         >
+                            <Check size={13} color={colors.success} />
                             <Text style={styles.completeText}>Completar</Text>
                         </TouchableOpacity>
                     )}
@@ -49,7 +63,7 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
                             style={styles.deleteButton}
                             onPress={() => eliminarTarea?.(task.id)}
                         >
-                            <Text style={styles.deleteText}>Eliminar</Text>
+                            <Trash2 size={14} color={colors.textMuted} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -81,24 +95,29 @@ const styles = StyleSheet.create({
         fontSize: typography.body,
         fontWeight: '500',
         color: colors.text,
+        marginBottom: spacing.xs,
     },
-    date: {
+    metaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 3,
+    },
+    metaText: {
+        flex: 1,
         fontSize: typography.caption,
         color: colors.textMuted,
-        marginTop: spacing.xs,
-    },
-    location: {
-        fontSize: typography.caption,
-        color: colors.textMuted,
-        marginTop: spacing.xs,
-        fontStyle: 'italic',
     },
     actions: {
         flexDirection: 'row',
+        alignItems: 'center',
         gap: spacing.sm,
         marginTop: spacing.sm,
     },
     completeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
         borderRadius: radius.sm,
@@ -113,10 +132,6 @@ const styles = StyleSheet.create({
     deleteButton: {
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
-    },
-    deleteText: {
-        fontSize: typography.caption,
-        color: colors.textMuted,
     },
 })
 

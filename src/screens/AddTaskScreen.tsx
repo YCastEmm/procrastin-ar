@@ -13,6 +13,7 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { useTaskStore } from "@/store/taskStore"
+import { CalendarDays, Clock, Camera, Images, MapPin, User, Plus, CalendarCheck } from "lucide-react-native"
 
 
 type AddTaskScreenProps = {
@@ -169,97 +170,122 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            <Text style={styles.appTitle}>
-                Procrastin<Text style={styles.appTitleBold}>AR</Text>
-            </Text>
-            <Text style={styles.subtitle}>Nueva tarea</Text>
+                <Text style={styles.appBrand}>
+                    Procrastin<Text style={styles.appBrandBold}>AR</Text>
+                </Text>
+                <Text style={styles.pageTitle}>Nueva tarea</Text>
 
-            <Text style={styles.label}>Descripción</Text>
-            <TextInput
-                style={styles.textInput}
-                placeholder="¿Qué tenés que hacer?"
-                placeholderTextColor={colors.textMuted}
-                value={tarea}
-                onChangeText={setTarea}
-            />
+                <Text style={styles.label}>Descripción</Text>
+                <TextInput
+                    style={styles.textInput}
+                    placeholder="¿Qué tenés que hacer?"
+                    placeholderTextColor={colors.textMuted}
+                    value={tarea}
+                    onChangeText={setTarea}
+                />
 
-            <Text style={styles.label}>Recordatorio</Text>
-            <View style={styles.datetimeRow}>
-                <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirDatePicker}>
-                    <Text style={styles.timeLabel}>Fecha</Text>
-                    <Text style={styles.timeValue}>
-                        {fechaElegida.toLocaleDateString('es-AR')}
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirPicker}>
-                    <Text style={styles.timeLabel}>Hora</Text>
-                    <Text style={styles.timeValue}>
-                        {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            <Text style={styles.label}>Foto</Text>
-            <View style={styles.photoRow}>
-                <TouchableOpacity style={styles.photoButton} onPress={handleTomarFoto}>
-                    <Text style={styles.photoButtonText}>Tomar foto</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.photoButton} onPress={handleElegirDeGaleria}>
-                    <Text style={styles.photoButtonText}>Elegir de galería</Text>
-                </TouchableOpacity>
-            </View>
-            {fotoUri && (
-                <Image source={{ uri: fotoUri }} style={styles.preview} />
-            )}
-
-            <Text style={styles.label}>Ubicación</Text>
-            {ubicacion ? (
-                <View style={styles.locationRow}>
-                    <Text style={styles.locationText} numberOfLines={1}>
-                        {ubicacion.direccion ?? `${ubicacion.lat.toFixed(5)}, ${ubicacion.lng.toFixed(5)}`}
-                    </Text>
-                    <TouchableOpacity onPress={() => setUbicacion(undefined)}>
-                        <Text style={styles.locationClear}>Quitar</Text>
+                <Text style={styles.label}>Recordatorio</Text>
+                <View style={styles.datetimeRow}>
+                    <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirDatePicker}>
+                        <View style={styles.timeLabelRow}>
+                            <CalendarDays size={13} color={colors.textMuted} />
+                            <Text style={styles.timeLabel}>Fecha</Text>
+                        </View>
+                        <Text style={styles.timeValue}>
+                            {fechaElegida.toLocaleDateString('es-AR')}
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirPicker}>
+                        <View style={styles.timeLabelRow}>
+                            <Clock size={13} color={colors.textMuted} />
+                            <Text style={styles.timeLabel}>Hora</Text>
+                        </View>
+                        <Text style={styles.timeValue}>
+                            {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
                     </TouchableOpacity>
                 </View>
-            ) : (
-                <TouchableOpacity
-                    style={[styles.photoButton, styles.locationButton]}
-                    onPress={handleUsarUbicacion}
-                    disabled={cargandoUbicacion}
-                >
-                    {cargandoUbicacion
-                        ? <ActivityIndicator size="small" color={colors.primary} />
-                        : <Text style={styles.photoButtonText}>Usar ubicación actual</Text>
-                    }
-                </TouchableOpacity>
-            )}
 
-            <Text style={styles.label}>Responsable</Text>
-            {contacto ? (
-                <View style={styles.locationRow}>
-                    <Text style={styles.locationText} numberOfLines={1}>
-                        {contacto.nombre}{contacto.telefono ? ` · ${contacto.telefono}` : ''}
-                    </Text>
-                    <TouchableOpacity onPress={() => setContacto(undefined)}>
-                        <Text style={styles.locationClear}>Quitar</Text>
+                <Text style={styles.label}>Foto</Text>
+                <View style={styles.photoRow}>
+                    <TouchableOpacity style={styles.photoButton} onPress={handleTomarFoto}>
+                        <View style={styles.iconButtonContent}>
+                            <Camera size={15} color={colors.primary} />
+                            <Text style={styles.photoButtonText}>Tomar foto</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.photoButton} onPress={handleElegirDeGaleria}>
+                        <View style={styles.iconButtonContent}>
+                            <Images size={15} color={colors.primary} />
+                            <Text style={styles.photoButtonText}>De galería</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
-            ) : (
-                <TouchableOpacity
-                    style={[styles.photoButton, styles.locationButton]}
-                    onPress={handleAsociarResponsable}
-                >
-                    <Text style={styles.photoButtonText}>Asociar responsable</Text>
-                </TouchableOpacity>
-            )}
+                {fotoUri && (
+                    <Image source={{ uri: fotoUri }} style={styles.preview} />
+                )}
 
+                <Text style={styles.label}>Ubicación</Text>
+                {ubicacion ? (
+                    <View style={styles.locationRow}>
+                        <MapPin size={14} color={colors.textMuted} />
+                        <Text style={styles.locationText} numberOfLines={1}>
+                            {ubicacion.direccion ?? `${ubicacion.lat.toFixed(5)}, ${ubicacion.lng.toFixed(5)}`}
+                        </Text>
+                        <TouchableOpacity onPress={() => setUbicacion(undefined)}>
+                            <Text style={styles.locationClear}>Quitar</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <TouchableOpacity
+                        style={[styles.photoButton, styles.locationButton]}
+                        onPress={handleUsarUbicacion}
+                        disabled={cargandoUbicacion}
+                    >
+                        {cargandoUbicacion
+                            ? <ActivityIndicator size="small" color={colors.primary} />
+                            : (
+                                <View style={styles.iconButtonContent}>
+                                    <MapPin size={15} color={colors.primary} />
+                                    <Text style={styles.photoButtonText}>Usar ubicación actual</Text>
+                                </View>
+                            )
+                        }
+                    </TouchableOpacity>
+                )}
+
+                <Text style={styles.label}>Responsable</Text>
+                {contacto ? (
+                    <View style={styles.locationRow}>
+                        <User size={14} color={colors.textMuted} />
+                        <Text style={styles.locationText} numberOfLines={1}>
+                            {contacto.nombre}{contacto.telefono ? ` · ${contacto.telefono}` : ''}
+                        </Text>
+                        <TouchableOpacity onPress={() => setContacto(undefined)}>
+                            <Text style={styles.locationClear}>Quitar</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <TouchableOpacity
+                        style={[styles.photoButton, styles.locationButton]}
+                        onPress={handleAsociarResponsable}
+                    >
+                        <View style={styles.iconButtonContent}>
+                            <User size={15} color={colors.primary} />
+                            <Text style={styles.photoButtonText}>Asociar responsable</Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
             </ScrollView>
+
             <TouchableOpacity
                 style={styles.createButton}
                 onPress={handleAddTask}
             >
-                <Text style={styles.createButtonText}>Crear tarea</Text>
+                <View style={styles.createButtonContent}>
+                    <Plus size={18} color="#fff" />
+                    <Text style={styles.createButtonText}>Crear tarea</Text>
+                </View>
             </TouchableOpacity>
 
             <Modal
@@ -270,7 +296,10 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>¿Agregar al calendario?</Text>
+                        <View style={styles.modalTitleRow}>
+                            <CalendarCheck size={18} color={colors.primary} />
+                            <Text style={styles.modalTitle}>¿Agregar al calendario?</Text>
+                        </View>
                         <Text style={styles.modalMessage}>
                             ¿Querés crear un evento en tu calendario para esta tarea?
                         </Text>
@@ -305,23 +334,25 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: spacing.md,
     },
-    appTitle: {
-        fontSize: 36, fontWeight: '300', color: colors.text,
+    appBrand: {
+        fontSize: 13, fontWeight: '400', color: colors.textMuted,
         marginBottom: spacing.xs,
+        letterSpacing: 0.3,
     },
-    appTitleBold: {
-        fontWeight: '800', color: colors.primary,
+    appBrandBold: {
+        fontWeight: '700', color: colors.primary,
     },
-    subtitle: {
-        fontSize: typography.body, color: colors.textMuted,
+    pageTitle: {
+        fontSize: 28, fontWeight: '700', color: colors.text,
         marginBottom: spacing.lg,
     },
     label: {
-        fontSize: typography.sectionHeader,
-        fontWeight: '600',
+        fontSize: 11,
+        fontWeight: '700',
         color: colors.textMuted,
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        letterSpacing: 0.8,
+        marginTop: spacing.sm,
         marginBottom: spacing.sm,
     },
     textInput: {
@@ -344,9 +375,9 @@ const styles = StyleSheet.create({
         marginBottom: 0,
     },
     timeRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 4,
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: radius.md,
@@ -354,9 +385,17 @@ const styles = StyleSheet.create({
         padding: spacing.md,
         marginBottom: spacing.lg,
     },
+    timeLabelRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
     timeLabel: {
-        fontSize: typography.body,
+        fontSize: 11,
+        fontWeight: '600',
         color: colors.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 0.4,
     },
     timeValue: {
         fontSize: typography.body,
@@ -376,6 +415,12 @@ const styles = StyleSheet.create({
         borderColor: colors.border,
         backgroundColor: colors.surface,
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+    iconButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
     },
     photoButtonText: {
         fontSize: typography.caption,
@@ -425,6 +470,11 @@ const styles = StyleSheet.create({
         marginTop: spacing.sm,
         marginBottom: spacing.md,
     },
+    createButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
     createButtonText: {
         fontSize: typography.body,
         fontWeight: '600',
@@ -442,6 +492,11 @@ const styles = StyleSheet.create({
         borderRadius: radius.md,
         padding: spacing.lg,
         width: '100%',
+        gap: spacing.sm,
+    },
+    modalTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
         gap: spacing.sm,
     },
     modalTitle: {

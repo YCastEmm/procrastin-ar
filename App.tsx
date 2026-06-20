@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import AddTaskScreen from './src/screens/AddTaskScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';

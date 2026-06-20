@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
 import { useAuthStore } from "@/store/authStore"
+import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react-native"
 
 type LoginScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -48,19 +49,24 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 No hagas hoy lo que podés dejar para mañana
             </Text>
             <Text style={styles.iniciarSesion}>Iniciar sesión</Text>
+
             <Text style={styles.label}>Email</Text>
-            <TextInput
-                style={styles.textInput}
-                placeholder="Ingresá tu email"
-                placeholderTextColor={colors.textMuted}
-                value={usuario}
-                onChangeText={setUsuario}
-                keyboardType="email-address"
-                autoCapitalize="none"
-            />
+            <View style={styles.inputContainer}>
+                <Mail size={16} color={colors.textMuted} />
+                <TextInput
+                    style={styles.innerInput}
+                    placeholder="Ingresá tu email"
+                    placeholderTextColor={colors.textMuted}
+                    value={usuario}
+                    onChangeText={setUsuario}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                />
+            </View>
 
             <Text style={styles.label}>Contraseña</Text>
             <View style={styles.passwordContainer}>
+                <Lock size={16} color={colors.textMuted} style={styles.lockIcon} />
                 <TextInput
                     style={styles.passwordInput}
                     secureTextEntry={!mostrarContraseña}
@@ -69,18 +75,24 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                     value={contraseña}
                     onChangeText={setContraseña}
                 />
-                <TouchableOpacity style={styles.toggleButton}
-                    onPress={() => setMostrarContraseña(!mostrarContraseña)}>
-                    <Text style={styles.toggleText}>
-                        {mostrarContraseña ? "Ocultar" : "Mostrar"}
-                    </Text>
+                <TouchableOpacity
+                    style={styles.toggleButton}
+                    onPress={() => setMostrarContraseña(!mostrarContraseña)}
+                >
+                    {mostrarContraseña
+                        ? <EyeOff size={18} color={colors.textMuted} />
+                        : <Eye size={18} color={colors.textMuted} />
+                    }
                 </TouchableOpacity>
             </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <TouchableOpacity style={globalStyles.primaryButton} onPress={handleLogin}>
-                <Text style={globalStyles.primaryButtonText}>Iniciar sesión</Text>
+                <View style={styles.buttonContent}>
+                    <LogIn size={16} color="#fff" />
+                    <Text style={globalStyles.primaryButtonText}>Iniciar sesión</Text>
+                </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={globalStyles.secondaryButton}
@@ -106,39 +118,46 @@ const styles = StyleSheet.create({
     },
     appSubtitle: {
         fontSize: 16, fontWeight: "200",
-        textAlign: 'center', marginBottom: spacing.xxl
-    }
-    ,
+        textAlign: 'center', marginBottom: spacing.xxl,
+    },
     iniciarSesion: {
         color: colors.textMuted,
         textAlign: 'left', marginBottom: spacing.lg,
-        fontWeight: "600", fontSize: 20
+        fontWeight: "600", fontSize: 20,
     },
     label: {
         fontSize: typography.sectionHeader, fontWeight: '600',
         color: colors.textMuted, textTransform: 'uppercase',
         letterSpacing: 0.5, marginBottom: spacing.sm,
     },
-    textInput: {
-        fontSize: typography.body, color: colors.text, borderWidth: 1,
-        borderColor: colors.border, borderRadius: radius.md,
-        backgroundColor: colors.surface, padding: spacing.md,
-        marginBottom: spacing.lg,
+    inputContainer: {
+        flexDirection: 'row', alignItems: 'center',
+        borderWidth: 1, borderColor: colors.border,
+        borderRadius: radius.md, backgroundColor: colors.surface,
+        paddingLeft: spacing.md, marginBottom: spacing.lg,
+    },
+    innerInput: {
+        flex: 1, fontSize: typography.body, color: colors.text,
+        padding: spacing.md, paddingLeft: spacing.sm,
     },
     passwordContainer: {
         flexDirection: 'row', alignItems: 'center', borderWidth: 1,
         borderColor: colors.border, borderRadius: radius.md,
         backgroundColor: colors.surface, marginBottom: spacing.lg,
+        paddingLeft: spacing.md,
+    },
+    lockIcon: {
+        flexShrink: 0,
     },
     passwordInput: {
         flex: 1, fontSize: typography.body, color: colors.text,
-        padding: spacing.md,
+        padding: spacing.md, paddingLeft: spacing.sm,
     },
     toggleButton: {
         paddingHorizontal: spacing.md, paddingVertical: spacing.md,
     },
-    toggleText: {
-        fontSize: typography.caption, fontWeight: '600', color: colors.primary,
+    buttonContent: {
+        flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     },
     error: {
         fontSize: typography.caption, color: colors.danger,
