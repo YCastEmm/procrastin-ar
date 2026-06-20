@@ -16,6 +16,12 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
                 <View style={styles.info}>
                     <Text style={styles.description}>{task.descripcion}</Text>
                     <Text style={styles.date}>{task.fecha}</Text>
+                    {task.ubicacion && (
+                        <Text style={styles.location} numberOfLines={1}>
+                            {task.ubicacion.direccion
+                                ?? `${task.ubicacion.lat.toFixed(5)}, ${task.ubicacion.lng.toFixed(5)}`}
+                        </Text>
+                    )}
                 </View>
                 {task.fotoUri && (
                     <Image source={{ uri: task.fotoUri }} style={styles.thumbnail} />
@@ -75,6 +81,12 @@ const styles = StyleSheet.create({
         fontSize: typography.caption,
         color: colors.textMuted,
         marginTop: spacing.xs,
+    },
+    location: {
+        fontSize: typography.caption,
+        color: colors.textMuted,
+        marginTop: spacing.xs,
+        fontStyle: 'italic',
     },
     actions: {
         flexDirection: 'row',

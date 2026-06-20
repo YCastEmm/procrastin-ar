@@ -1,10 +1,12 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { programarRecordatorio } from "@/services/notificationsService"
-import { requestCameraPermission, requestMediaLibraryPermission } from "@/services/permissionsService"
+import { requestCameraPermission, requestMediaLibraryPermission, requestLocationPermission } from "@/services/permissionsService"
 import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker"
+import * as Location from "expo-location"
+import { Task } from "@/types/Task.type"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, radius } from "@/themes/theme"
@@ -20,6 +22,8 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const [tarea, setTarea] = useState<string>("")
     const [horaElegida, setHoraElegida] = useState<Date>(new Date())
     const [fotoUri, setFotoUri] = useState<string | undefined>()
+    const [ubicacion, setUbicacion] = useState<Task['ubicacion']>(undefined)
+    const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
 
     const { addTask } = useTaskStore()
 
@@ -35,6 +39,32 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
         if (status !== 'granted') return
         const result = await launchImageLibraryAsync({ quality: 0.7 })
         if (!result.canceled) setFotoUri(result.assets[0].uri)
+    }
+
+    const handleUsarUbicacion = async () => {
+        const status = await requestLocationPermission()
+        if (status !== 'granted') return
+        setCargandoUbicacion(true)
+        try {
+            const { coords } = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            })
+            const { latitude: lat, longitude: lng } = coords
+            let direccion: string | undefined
+            try {
+                const [lugar] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng })
+                if (lugar) {
+                    direccion = [lugar.street, lugar.city, lugar.region]
+                        .filter(Boolean)
+                        .join(', ')
+                }
+            } catch {
+                // reverseGeocode failed, guardamos solo coords
+            }
+            setUbicacion({ lat, lng, direccion })
+        } finally {
+            setCargandoUbicacion(false)
+        }
     }
 
     const abrirPicker = () => {
@@ -56,6 +86,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                 descripcion: tarea,
                 completada: false,
                 fotoUri,
+                ubicacion,
             }
             await addTask(nuevaTarea)
             await programarRecordatorio(tarea, horaElegida)
@@ -100,6 +131,29 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
             </View>
             {fotoUri && (
                 <Image source={{ uri: fotoUri }} style={styles.preview} />
+            )}
+
+            <Text style={styles.label}>Ubicación</Text>
+            {ubicacion ? (
+                <View style={styles.locationRow}>
+                    <Text style={styles.locationText} numberOfLines={1}>
+                        {ubicacion.direccion ?? `${ubicacion.lat.toFixed(5)}, ${ubicacion.lng.toFixed(5)}`}
+                    </Text>
+                    <TouchableOpacity onPress={() => setUbicacion(undefined)}>
+                        <Text style={styles.locationClear}>Quitar</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                <TouchableOpacity
+                    style={[styles.photoButton, styles.locationButton]}
+                    onPress={handleUsarUbicacion}
+                    disabled={cargandoUbicacion}
+                >
+                    {cargandoUbicacion
+                        ? <ActivityIndicator size="small" color={colors.primary} />
+                        : <Text style={styles.photoButtonText}>Usar ubicación actual</Text>
+                    }
+                </TouchableOpacity>
             )}
 
             <TouchableOpacity
@@ -192,6 +246,35 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: radius.md,
         marginBottom: spacing.md,
+    },
+    locationButton: {
+        flex: 0,
+        alignSelf: 'flex-start',
+        paddingHorizontal: spacing.md,
+        marginBottom: spacing.lg,
+    },
+    locationRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        backgroundColor: colors.surface,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        marginBottom: spacing.lg,
+        gap: spacing.sm,
+    },
+    locationText: {
+        flex: 1,
+        fontSize: typography.caption,
+        color: colors.text,
+    },
+    locationClear: {
+        fontSize: typography.caption,
+        color: colors.danger,
+        fontWeight: '500',
     },
     createButton: {
         backgroundColor: colors.primary,
