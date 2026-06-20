@@ -9,7 +9,7 @@ import { colors, spacing, typography } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
 import { useTaskStore } from "@/store/taskStore"
 import { useAuthStore } from "@/store/authStore"
-import { Plus, LogOut, Trash2 } from "lucide-react-native"
+import { Plus, LogOut, Trash2, ClipboardList, CheckCheck } from "lucide-react-native"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -25,17 +25,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         pedirPermisos()
     }, [])
 
-    const handleCompletar = async (id: string) => {
-        await toggleComplete(id)
-    }
-
-    const handleEliminar = async (id: string) => {
-        await deleteTask(id)
-    }
-
-    const handleLimpiarCompletadas = async () => {
-        await clearCompleted()
-    }
+    const pendientes = tasks.filter(t => !t.completada)
+    const completadas = tasks.filter(t => t.completada)
 
     return (
         <SafeAreaView style={styles.container}>
@@ -44,30 +35,58 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                     Procrastin<Text style={styles.appTitleBold}>AR</Text>
                 </Text>
 
-                <Text style={styles.sectionHeader}>Pendientes</Text>
-                <FlatList
-                    style={styles.list}
-                    data={tasks?.filter((task) => task.completada === false)}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
-                    ListEmptyComponent={<Text style={styles.emptyText}>No tenés tareas pendientes</Text>}
-                />
-
-                <View style={styles.sectionRow}>
-                    <Text style={styles.sectionHeader}>Completadas</Text>
-                    {tasks.some(t => t.completada) && (
-                        <TouchableOpacity style={styles.clearButton} onPress={handleLimpiarCompletadas}>
-                            <Trash2 size={13} color={colors.textMuted} />
-                            <Text style={styles.clearText}>Limpiar</Text>
-                        </TouchableOpacity>
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Pendientes</Text>
+                    {pendientes.length > 0 && (
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>{pendientes.length}</Text>
+                        </View>
                     )}
                 </View>
                 <FlatList
                     style={styles.list}
-                    data={tasks?.filter((task) => task.completada === true)}
+                    data={pendientes}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (<TaskItem task={item} />)}
-                    ListEmptyComponent={<Text style={styles.emptyText}>No hay tareas completadas</Text>}
+                    renderItem={({ item }) => (
+                        <TaskItem
+                            task={item}
+                            completarTarea={(id) => toggleComplete(id)}
+                            eliminarTarea={(id) => deleteTask(id)}
+                        />
+                    )}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <ClipboardList size={32} color={colors.border} />
+                            <Text style={styles.emptyText}>No tenés tareas pendientes</Text>
+                        </View>
+                    }
+                />
+
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Completadas</Text>
+                    {completadas.length > 0 && (
+                        <>
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>{completadas.length}</Text>
+                            </View>
+                            <TouchableOpacity style={styles.clearButton} onPress={clearCompleted}>
+                                <Trash2 size={13} color={colors.textMuted} />
+                                <Text style={styles.clearText}>Limpiar</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+                <FlatList
+                    style={styles.list}
+                    data={completadas}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => <TaskItem task={item} />}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <CheckCheck size={32} color={colors.border} />
+                            <Text style={styles.emptyText}>Nada completado aún</Text>
+                        </View>
+                    }
                 />
             </View>
 
@@ -82,11 +101,13 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={globalStyles.secondaryButton}
+                <TouchableOpacity
+                    style={globalStyles.secondaryButton}
                     onPress={async () => {
                         await logout()
                         navigation.replace("Login")
-                    }}>
+                    }}
+                >
                     <View style={styles.buttonContent}>
                         <LogOut size={16} color={colors.primary} />
                         <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>
@@ -115,38 +136,67 @@ const styles = StyleSheet.create({
         fontWeight: '800', color: colors.primary,
     },
     sectionHeader: {
-        fontSize: typography.sectionHeader,
-        fontWeight: '600',
-        color: colors.textMuted,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
         marginTop: spacing.md,
         marginBottom: spacing.sm,
     },
-    sectionRow: {
-        flexDirection: 'row', alignItems: 'center',
-        justifyContent: 'space-between', marginTop: spacing.md,
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: colors.text,
+    },
+    badge: {
+        backgroundColor: colors.surface,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 10,
+        paddingHorizontal: 7,
+        paddingVertical: 1,
+    },
+    badgeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.textMuted,
     },
     clearButton: {
-        flexDirection: 'row', alignItems: 'center', gap: 4,
-        marginBottom: spacing.sm,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginLeft: 'auto',
     },
     clearText: {
-        fontSize: typography.caption, fontWeight: '500',
+        fontSize: typography.caption,
+        fontWeight: '500',
         color: colors.textMuted,
     },
     list: {
         flexGrow: 0,
     },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: spacing.lg,
+        gap: spacing.xs,
+    },
+    emptyTitle: {
+        fontSize: typography.body,
+        fontWeight: '600',
+        color: colors.textMuted,
+        marginTop: spacing.xs,
+    },
     emptyText: {
-        fontSize: typography.body, color: colors.textMuted,
-        fontStyle: 'italic', paddingVertical: spacing.sm,
+        fontSize: typography.caption,
+        color: colors.textMuted,
     },
     bottomButtons: {
-        paddingTop: spacing.md, gap: spacing.sm,
+        paddingTop: spacing.md,
+        gap: spacing.sm,
     },
     buttonContent: {
-        flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
     },
 })
 

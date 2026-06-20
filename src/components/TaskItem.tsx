@@ -10,12 +10,15 @@ type TaskItemProps = {
 }
 
 const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
+    const esCompletada = task.completada
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, esCompletada && styles.containerCompleted]}>
             <View style={styles.row}>
                 <View style={styles.info}>
-                    <Text style={styles.description}>{task.descripcion}</Text>
+                    <Text style={[styles.description, esCompletada && styles.descriptionCompleted]}>
+                        {task.descripcion}
+                    </Text>
 
                     <View style={styles.metaRow}>
                         <CalendarDays size={12} color={colors.textMuted} />
@@ -57,7 +60,6 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
                             <Text style={styles.completeText}>Completar</Text>
                         </TouchableOpacity>
                     )}
-
                     {eliminarTarea && (
                         <TouchableOpacity
                             style={styles.deleteButton}
@@ -74,28 +76,38 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        paddingVertical: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        backgroundColor: colors.surface,
+        borderRadius: radius.md + 2,
+        borderWidth: 1,
+        borderColor: colors.border,
+        padding: spacing.md,
+        marginBottom: spacing.sm,
+    },
+    containerCompleted: {
+        opacity: 0.55,
     },
     row: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: spacing.sm,
     },
     info: {
         flex: 1,
     },
     thumbnail: {
-        width: 48,
-        height: 48,
-        borderRadius: radius.sm,
+        width: 52,
+        height: 52,
+        borderRadius: radius.md,
     },
     description: {
         fontSize: typography.body,
         fontWeight: '500',
         color: colors.text,
         marginBottom: spacing.xs,
+    },
+    descriptionCompleted: {
+        textDecorationLine: 'line-through',
+        color: colors.textMuted,
     },
     metaRow: {
         flexDirection: 'row',
@@ -111,8 +123,11 @@ const styles = StyleSheet.create({
     actions: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: spacing.sm,
+        justifyContent: 'space-between',
         marginTop: spacing.sm,
+        paddingTop: spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
     },
     completeButton: {
         flexDirection: 'row',
