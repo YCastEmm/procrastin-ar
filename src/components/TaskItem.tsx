@@ -22,6 +22,11 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
                                 ?? `${task.ubicacion.lat.toFixed(5)}, ${task.ubicacion.lng.toFixed(5)}`}
                         </Text>
                     )}
+                    {task.contacto && (
+                        <Text style={styles.location} numberOfLines={1}>
+                            {task.contacto.nombre}
+                        </Text>
+                    )}
                 </View>
                 {task.fotoUri && (
                     <Image source={{ uri: task.fotoUri }} style={styles.thumbnail} />

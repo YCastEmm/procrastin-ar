@@ -3,9 +3,10 @@ import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { programarRecordatorio } from "@/services/notificationsService"
-import { requestCameraPermission, requestMediaLibraryPermission, requestLocationPermission } from "@/services/permissionsService"
+import { requestCameraPermission, requestMediaLibraryPermission, requestLocationPermission, requestContactsPermission } from "@/services/permissionsService"
 import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker"
 import * as Location from "expo-location"
+import * as Contacts from "expo-contacts"
 import { Task } from "@/types/Task.type"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -24,6 +25,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const [fotoUri, setFotoUri] = useState<string | undefined>()
     const [ubicacion, setUbicacion] = useState<Task['ubicacion']>(undefined)
     const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
+    const [contacto, setContacto] = useState<Task['contacto']>(undefined)
 
     const { addTask } = useTaskStore()
 
@@ -67,6 +69,15 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
         }
     }
 
+    const handleAsociarResponsable = async () => {
+        const status = await requestContactsPermission()
+        if (status !== 'granted') return
+        const contact = await Contacts.presentContactPickerAsync()
+        if (!contact) return
+        const telefono = contact.phoneNumbers?.[0]?.number ?? undefined
+        setContacto({ nombre: contact.name, telefono })
+    }
+
     const abrirPicker = () => {
         DateTimePickerAndroid.open({
             value: horaElegida,
@@ -87,6 +98,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                 completada: false,
                 fotoUri,
                 ubicacion,
+                contacto,
             }
             await addTask(nuevaTarea)
             await programarRecordatorio(tarea, horaElegida)
@@ -153,6 +165,25 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                         ? <ActivityIndicator size="small" color={colors.primary} />
                         : <Text style={styles.photoButtonText}>Usar ubicación actual</Text>
                     }
+                </TouchableOpacity>
+            )}
+
+            <Text style={styles.label}>Responsable</Text>
+            {contacto ? (
+                <View style={styles.locationRow}>
+                    <Text style={styles.locationText} numberOfLines={1}>
+                        {contacto.nombre}{contacto.telefono ? ` · ${contacto.telefono}` : ''}
+                    </Text>
+                    <TouchableOpacity onPress={() => setContacto(undefined)}>
+                        <Text style={styles.locationClear}>Quitar</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                <TouchableOpacity
+                    style={[styles.photoButton, styles.locationButton]}
+                    onPress={handleAsociarResponsable}
+                >
+                    <Text style={styles.photoButtonText}>Asociar responsable</Text>
                 </TouchableOpacity>
             )}
 
