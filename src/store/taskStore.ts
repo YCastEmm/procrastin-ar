@@ -7,6 +7,7 @@ import {
     eliminarTarea,
     limpiarCompletadas,
 } from '@/services/taskService'
+import * as Calendar from 'expo-calendar'
 
 interface TaskStore {
     tasks: Task[]
@@ -18,7 +19,7 @@ interface TaskStore {
     clearCompleted: () => Promise<void>
 }
 
-export const useTaskStore = create<TaskStore>((set) => ({
+export const useTaskStore = create<TaskStore>((set, get) => ({
     tasks: [],
 
     loadTasks: async () => {
@@ -41,6 +42,12 @@ export const useTaskStore = create<TaskStore>((set) => ({
     },
 
     deleteTask: async (id: string) => {
+        const task = get().tasks.find(t => t.id === id)
+        if (task?.calendarEventId) {
+            try {
+                await Calendar.deleteEventAsync(task.calendarEventId)
+            } catch {}
+        }
         const updated = await eliminarTarea(id)
         set({ tasks: updated })
     },

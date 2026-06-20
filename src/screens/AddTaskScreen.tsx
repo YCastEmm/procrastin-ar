@@ -1,12 +1,13 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { programarRecordatorio } from "@/services/notificationsService"
-import { requestCameraPermission, requestMediaLibraryPermission, requestLocationPermission, requestContactsPermission } from "@/services/permissionsService"
+import { requestCameraPermission, requestMediaLibraryPermission, requestLocationPermission, requestContactsPermission, requestCalendarPermission } from "@/services/permissionsService"
 import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker"
 import * as Location from "expo-location"
 import * as Contacts from "expo-contacts"
+import * as Calendar from "expo-calendar"
 import { Task } from "@/types/Task.type"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -21,6 +22,7 @@ type AddTaskScreenProps = {
 const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     const [tarea, setTarea] = useState<string>("")
+    const [fechaElegida, setFechaElegida] = useState<Date>(new Date())
     const [horaElegida, setHoraElegida] = useState<Date>(new Date())
     const [fotoUri, setFotoUri] = useState<string | undefined>()
     const [ubicacion, setUbicacion] = useState<Task['ubicacion']>(undefined)
@@ -78,6 +80,16 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
         setContacto({ nombre: contact.name, telefono })
     }
 
+    const abrirDatePicker = () => {
+        DateTimePickerAndroid.open({
+            value: fechaElegida,
+            mode: 'date',
+            onChange: (event, selectedDate) => {
+                if (selectedDate) setFechaElegida(selectedDate)
+            }
+        })
+    }
+
     const abrirPicker = () => {
         DateTimePickerAndroid.open({
             value: horaElegida,
@@ -89,19 +101,54 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
         })
     }
 
+    const getFechaHora = () => {
+        const dt = new Date(fechaElegida)
+        dt.setHours(horaElegida.getHours(), horaElegida.getMinutes(), 0, 0)
+        return dt
+    }
+
+    const getDefaultCalendarId = async (): Promise<string | null> => {
+        if (Platform.OS === 'ios') {
+            const cal = await Calendar.getDefaultCalendarAsync()
+            return cal?.id ?? null
+        }
+        const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+        const primary = calendars.find(c => c.isPrimary && c.allowsModifications)
+            ?? calendars.find(c => c.allowsModifications)
+        return primary?.id ?? null
+    }
+
     const handleAddTask = async () => {
         try {
+            let calendarEventId: string | undefined
+            const calStatus = await requestCalendarPermission()
+            if (calStatus === 'granted') {
+                try {
+                    const calendarId = await getDefaultCalendarId()
+                    if (calendarId) {
+                        const startDate = getFechaHora()
+                        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
+                        calendarEventId = await Calendar.createEventAsync(calendarId, {
+                            title: tarea,
+                            startDate,
+                            endDate,
+                        })
+                    }
+                } catch {}
+            }
+
             const nuevaTarea = {
                 id: Date.now().toString(),
-                fecha: new Date().toLocaleDateString('es-AR'),
+                fecha: fechaElegida.toLocaleDateString('es-AR'),
                 descripcion: tarea,
                 completada: false,
                 fotoUri,
                 ubicacion,
                 contacto,
+                calendarEventId,
             }
             await addTask(nuevaTarea)
-            await programarRecordatorio(tarea, horaElegida)
+            await programarRecordatorio(tarea, getFechaHora())
             navigation.navigate("Home")
         } catch (error) {
             console.error(error)
@@ -110,6 +157,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             <Text style={styles.appTitle}>
                 Procrastin<Text style={styles.appTitleBold}>AR</Text>
             </Text>
@@ -125,12 +173,20 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
             />
 
             <Text style={styles.label}>Recordatorio</Text>
-            <TouchableOpacity style={styles.timeRow} onPress={abrirPicker}>
-                <Text style={styles.timeLabel}>Hora</Text>
-                <Text style={styles.timeValue}>
-                    {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-            </TouchableOpacity>
+            <View style={styles.datetimeRow}>
+                <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirDatePicker}>
+                    <Text style={styles.timeLabel}>Fecha</Text>
+                    <Text style={styles.timeValue}>
+                        {fechaElegida.toLocaleDateString('es-AR')}
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.timeRow, styles.datetimeField]} onPress={abrirPicker}>
+                    <Text style={styles.timeLabel}>Hora</Text>
+                    <Text style={styles.timeValue}>
+                        {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                </TouchableOpacity>
+            </View>
 
             <Text style={styles.label}>Foto</Text>
             <View style={styles.photoRow}>
@@ -187,6 +243,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                 </TouchableOpacity>
             )}
 
+            </ScrollView>
             <TouchableOpacity
                 style={styles.createButton}
                 onPress={handleAddTask}
@@ -203,6 +260,9 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
+    },
+    scrollContent: {
+        paddingBottom: spacing.md,
     },
     appTitle: {
         fontSize: 36, fontWeight: '300', color: colors.text,
@@ -232,6 +292,15 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         padding: spacing.md,
         marginBottom: spacing.lg,
+    },
+    datetimeRow: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginBottom: spacing.lg,
+    },
+    datetimeField: {
+        flex: 1,
+        marginBottom: 0,
     },
     timeRow: {
         flexDirection: 'row',
@@ -313,6 +382,7 @@ const styles = StyleSheet.create({
         borderRadius: radius.md,
         alignItems: 'center',
         marginTop: spacing.sm,
+        marginBottom: spacing.md,
     },
     createButtonText: {
         fontSize: typography.body,
