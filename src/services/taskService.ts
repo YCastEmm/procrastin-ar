@@ -24,6 +24,9 @@ export const eliminarTarea = async (id: string) => {
     return actualizadas;
 };
 
+export const validarDescripcion = (descripcion: string): boolean =>
+    descripcion.trim().length > 0
+
 export const limpiarCompletadas = async () => {
     const tareas = await getTareas();
     const pendientes = tareas.filter((item: Task) => !item.completada);
