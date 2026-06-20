@@ -1,15 +1,14 @@
 import { StackNavigationProp } from "@react-navigation/stack"
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { RootStackParamList } from "../../App"
-import { useEffect, useState } from "react"
-import { Task } from "@/types/Task.type"
+import { useEffect } from "react"
 import TaskItem from "@/components/TaskItem"
-import { completarTarea, eliminarTarea, limpiarCompletadas, getTareas } from "@/services/taskService"
 import { pedirPermisos } from "@/services/notificationsService"
-import { cerrarSesion } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
+import { useTaskStore } from "@/store/taskStore"
+import { useAuthStore } from "@/store/authStore"
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -17,32 +16,24 @@ type HomeScreenProps = {
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
-    const [listaTareas, setListaTareas] = useState<Task[]>([])
-
-    const cargarTareas = async () => {
-        const tareas = await getTareas()
-        setListaTareas(tareas)
-    }
+    const { tasks, loadTasks, toggleComplete, deleteTask, clearCompleted } = useTaskStore()
+    const { logout } = useAuthStore()
 
     useEffect(() => {
-        cargarTareas()
+        loadTasks()
         pedirPermisos()
     }, [])
 
-
     const handleCompletar = async (id: string) => {
-        const actualizadas = await completarTarea(id)
-        setListaTareas(actualizadas)
+        await toggleComplete(id)
     }
 
     const handleEliminar = async (id: string) => {
-        const actualizadas = await eliminarTarea(id)
-        setListaTareas(actualizadas)
+        await deleteTask(id)
     }
 
     const handleLimpiarCompletadas = async () => {
-        const pendientes = await limpiarCompletadas()
-        setListaTareas(pendientes)
+        await clearCompleted()
     }
 
 
@@ -56,7 +47,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 <Text style={styles.sectionHeader}>Pendientes</Text>
                 <FlatList
                     style={styles.list}
-                    data={listaTareas?.filter((task) => task.completada === false)}
+                    data={tasks?.filter((task) => task.completada === false)}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (<TaskItem task={item} completarTarea={handleCompletar} eliminarTarea={handleEliminar} />)}
                     ListEmptyComponent={<Text style={styles.emptyText}>No tenés tareas pendientes</Text>}
@@ -64,7 +55,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
                 <View style={styles.sectionRow}>
                     <Text style={styles.sectionHeader}>Completadas</Text>
-                    {listaTareas.some(t => t.completada) && (
+                    {tasks.some(t => t.completada) && (
                         <TouchableOpacity onPress={handleLimpiarCompletadas}>
                             <Text style={styles.clearText}>Limpiar</Text>
                         </TouchableOpacity>
@@ -72,7 +63,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 </View>
                 <FlatList
                     style={styles.list}
-                    data={listaTareas?.filter((task) => task.completada === true)}
+                    data={tasks?.filter((task) => task.completada === true)}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (<TaskItem task={item} />)}
                     ListEmptyComponent={<Text style={styles.emptyText}>No hay tareas completadas</Text>}
@@ -89,7 +80,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
                 <TouchableOpacity style={globalStyles.secondaryButton}
                     onPress={async () => {
-                        await cerrarSesion()
+                        await logout()
                         navigation.replace("Login")
                     }}>
                     <Text style={globalStyles.secondaryButtonText}>Cerrar sesión</Text>

@@ -2,7 +2,8 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState, useEffect } from "react"
-import { guardarUsuario, estaLogueado } from "@/services/authService"
+import { estaLogueado } from "@/services/authService"
+import { useAuthStore } from "@/store/authStore"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
@@ -19,6 +20,8 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState<boolean>(false)
     const [error, setError] = useState<string>("")
 
+    const { register } = useAuthStore()
+
     useEffect(() => {
         (async () => {
             if (await estaLogueado()) {
@@ -27,13 +30,19 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
         })()
     }, [])
 
+    const esEmailValido = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
     const handleRegister = async () => {
+        if (!esEmailValido(usuario)) {
+            setError("Ingresá un email válido")
+            return
+        }
         if (contraseña !== confirmarContraseña) {
             setError("Las contraseñas no coinciden")
             return
         }
         setError("")
-        await guardarUsuario(usuario, contraseña)
+        await register(usuario, contraseña)
         navigation.navigate("Login")
     }
 
@@ -41,13 +50,15 @@ const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Crear cuenta</Text>
 
-            <Text style={styles.label}>Usuario</Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput
                 style={styles.textInput}
-                placeholder="Ingresá tu usuario"
+                placeholder="Ingresá tu email"
                 placeholderTextColor={colors.textMuted}
                 value={usuario}
                 onChangeText={setUsuario}
+                keyboardType="email-address"
+                autoCapitalize="none"
             />
 
             <Text style={styles.label}>Contraseña</Text>

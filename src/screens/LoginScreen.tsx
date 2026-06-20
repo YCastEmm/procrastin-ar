@@ -2,10 +2,11 @@ import { useState, useEffect } from "react"
 import { Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native"
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from "../../App"
-import { verificarUsuario, iniciarSesion, estaLogueado } from "@/services/authService"
+import { estaLogueado } from "@/services/authService"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 import { globalStyles } from "@/themes/styles"
+import { useAuthStore } from "@/store/authStore"
 
 type LoginScreenProps = {
     navigation: StackNavigationProp<RootStackParamList>
@@ -17,6 +18,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [error, setError] = useState<string>("")
     const [mostrarContraseña, setMostrarContraseña] = useState<boolean>(false)
 
+    const { login } = useAuthStore()
+
     useEffect(() => {
         (async () => {
             if (await estaLogueado()) {
@@ -26,15 +29,12 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     }, [])
 
     const handleLogin = async () => {
-        const successfullLogin = await verificarUsuario(usuario, contraseña)
-        if (successfullLogin === null) {
+        const result = await login(usuario, contraseña)
+        if (result === null) {
             setError("El usuario no existe")
-        }
-        if (successfullLogin === true) {
-            await iniciarSesion(usuario)
+        } else if (result === true) {
             navigation.replace("Home")
-        }
-        if (successfullLogin === false) {
+        } else {
             setError("Credenciales de acceso inválidas")
         }
     }
@@ -48,13 +48,15 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 No hagas hoy lo que podés dejar para mañana
             </Text>
             <Text style={styles.iniciarSesion}>Iniciar sesión</Text>
-            <Text style={styles.label}>Usuario</Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput
                 style={styles.textInput}
-                placeholder="Ingresá tu usuario"
+                placeholder="Ingresá tu email"
                 placeholderTextColor={colors.textMuted}
                 value={usuario}
                 onChangeText={setUsuario}
+                keyboardType="email-address"
+                autoCapitalize="none"
             />
 
             <Text style={styles.label}>Contraseña</Text>

@@ -2,11 +2,11 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
-import AsyncStorage from "@react-native-async-storage/async-storage"
 import { programarRecordatorio } from "@/services/notificationsService"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, radius } from "@/themes/theme"
+import { useTaskStore } from "@/store/taskStore"
 
 
 type AddTaskScreenProps = {
@@ -18,6 +18,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const [tarea, setTarea] = useState<string>("")
     const [horaElegida, setHoraElegida] = useState<Date>(new Date())
 
+    const { addTask } = useTaskStore()
 
     const abrirPicker = () => {
         DateTimePickerAndroid.open({
@@ -31,23 +32,19 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     }
 
     const handleAddTask = async () => {
-
         try {
-        const storedTasks = await AsyncStorage.getItem("tareas")
-        const listaTareas = storedTasks ? JSON.parse(storedTasks) : []
-        const nuevaTarea = {
-            id: Date.now().toString(),
-            fecha: new Date().toLocaleDateString('es-AR'),
-            descripcion: tarea,
-            completada: false,
+            const nuevaTarea = {
+                id: Date.now().toString(),
+                fecha: new Date().toLocaleDateString('es-AR'),
+                descripcion: tarea,
+                completada: false,
+            }
+            await addTask(nuevaTarea)
+            await programarRecordatorio(tarea, horaElegida)
+            navigation.navigate("Home")
+        } catch (error) {
+            console.error(error)
         }
-        listaTareas.push(nuevaTarea)
-        await AsyncStorage.setItem("tareas", JSON.stringify(listaTareas))
-        await programarRecordatorio(tarea, horaElegida)
-        navigation.navigate("Home")
-    } catch (error) {
-        console.error(error)
-    }
     }
 
     return (
