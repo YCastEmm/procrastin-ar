@@ -26,14 +26,14 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const handleTomarFoto = async () => {
         const status = await requestCameraPermission()
         if (status !== 'granted') return
-        const result = await launchCameraAsync({ allowsEditing: true, quality: 0.7 })
+        const result = await launchCameraAsync({ quality: 0.7 })
         if (!result.canceled) setFotoUri(result.assets[0].uri)
     }
 
     const handleElegirDeGaleria = async () => {
         const status = await requestMediaLibraryPermission()
         if (status !== 'granted') return
-        const result = await launchImageLibraryAsync({ allowsEditing: true, quality: 0.7 })
+        const result = await launchImageLibraryAsync({ quality: 0.7 })
         if (!result.canceled) setFotoUri(result.assets[0].uri)
     }
 
