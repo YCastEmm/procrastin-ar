@@ -1,8 +1,10 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { programarRecordatorio } from "@/services/notificationsService"
+import { requestCameraPermission, requestMediaLibraryPermission } from "@/services/permissionsService"
+import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker"
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors, spacing, typography, radius } from "@/themes/theme"
@@ -17,8 +19,23 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
 
     const [tarea, setTarea] = useState<string>("")
     const [horaElegida, setHoraElegida] = useState<Date>(new Date())
+    const [fotoUri, setFotoUri] = useState<string | undefined>()
 
     const { addTask } = useTaskStore()
+
+    const handleTomarFoto = async () => {
+        const status = await requestCameraPermission()
+        if (status !== 'granted') return
+        const result = await launchCameraAsync({ allowsEditing: true, quality: 0.7 })
+        if (!result.canceled) setFotoUri(result.assets[0].uri)
+    }
+
+    const handleElegirDeGaleria = async () => {
+        const status = await requestMediaLibraryPermission()
+        if (status !== 'granted') return
+        const result = await launchImageLibraryAsync({ allowsEditing: true, quality: 0.7 })
+        if (!result.canceled) setFotoUri(result.assets[0].uri)
+    }
 
     const abrirPicker = () => {
         DateTimePickerAndroid.open({
@@ -38,6 +55,7 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                 fecha: new Date().toLocaleDateString('es-AR'),
                 descripcion: tarea,
                 completada: false,
+                fotoUri,
             }
             await addTask(nuevaTarea)
             await programarRecordatorio(tarea, horaElegida)
@@ -70,6 +88,19 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                     {horaElegida.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                 </Text>
             </TouchableOpacity>
+
+            <Text style={styles.label}>Foto</Text>
+            <View style={styles.photoRow}>
+                <TouchableOpacity style={styles.photoButton} onPress={handleTomarFoto}>
+                    <Text style={styles.photoButtonText}>Tomar foto</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.photoButton} onPress={handleElegirDeGaleria}>
+                    <Text style={styles.photoButtonText}>Elegir de galería</Text>
+                </TouchableOpacity>
+            </View>
+            {fotoUri && (
+                <Image source={{ uri: fotoUri }} style={styles.preview} />
+            )}
 
             <TouchableOpacity
                 style={styles.createButton}
@@ -136,6 +167,31 @@ const styles = StyleSheet.create({
         fontSize: typography.body,
         fontWeight: '600',
         color: colors.text,
+    },
+    photoRow: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    photoButton: {
+        flex: 1,
+        paddingVertical: spacing.sm,
+        borderRadius: radius.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.surface,
+        alignItems: 'center',
+    },
+    photoButtonText: {
+        fontSize: typography.caption,
+        fontWeight: '500',
+        color: colors.text,
+    },
+    preview: {
+        width: 80,
+        height: 80,
+        borderRadius: radius.md,
+        marginBottom: spacing.md,
     },
     createButton: {
         backgroundColor: colors.primary,

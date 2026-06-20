@@ -1,5 +1,5 @@
 import { Task } from "@/types/Task.type"
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native"
 import { colors, spacing, typography, radius } from "@/themes/theme"
 
 type TaskItemProps = {
@@ -12,8 +12,15 @@ const TaskItem = ({ task, completarTarea, eliminarTarea }: TaskItemProps) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.description}>{task.descripcion}</Text>
-            <Text style={styles.date}>{task.fecha}</Text>
+            <View style={styles.row}>
+                <View style={styles.info}>
+                    <Text style={styles.description}>{task.descripcion}</Text>
+                    <Text style={styles.date}>{task.fecha}</Text>
+                </View>
+                {task.fotoUri && (
+                    <Image source={{ uri: task.fotoUri }} style={styles.thumbnail} />
+                )}
+            </View>
 
             {(completarTarea || eliminarTarea) && (
                 <View style={styles.actions}>
@@ -45,6 +52,19 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    info: {
+        flex: 1,
+    },
+    thumbnail: {
+        width: 48,
+        height: 48,
+        borderRadius: radius.sm,
     },
     description: {
         fontSize: typography.body,
