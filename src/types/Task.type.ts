@@ -17,5 +17,6 @@ export interface Task {
     }
     hora?: string
     calendarEventId?: string
+    notificationId?: string
     prioridad?: 'alta' | 'media' | 'baja'
 }

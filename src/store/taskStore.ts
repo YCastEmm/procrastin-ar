@@ -7,7 +7,9 @@ import {
     eliminarTarea,
     limpiarCompletadas,
 } from '@/services/taskService'
+import { sincronizarNotificaciones } from '@/services/notificationsService'
 import * as Calendar from 'expo-calendar'
+import * as Notifications from 'expo-notifications'
 
 interface TaskStore {
     tasks: Task[]
@@ -24,7 +26,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     loadTasks: async () => {
         const tasks = await getTareas()
-        set({ tasks })
+        const sincronizadas = await sincronizarNotificaciones(tasks)
+        await saveTareas(sincronizadas)
+        set({ tasks: sincronizadas })
     },
 
     addTask: async (task: Task) => {
@@ -53,6 +57,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     },
 
     toggleComplete: async (id: string) => {
+        const task = get().tasks.find(t => t.id === id)
+        if (task && !task.completada && task.notificationId) {
+            try {
+                await Notifications.cancelScheduledNotificationAsync(task.notificationId)
+            } catch {}
+        }
         const updated = await completarTarea(id)
         set({ tasks: updated })
     },

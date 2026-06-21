@@ -24,7 +24,7 @@ const Stack = createStackNavigator<RootStackParamList>(); // crea el objeto que 
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        houldShowAlert: true,
+        shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
         shouldShowBanner: true,

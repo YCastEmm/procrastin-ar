@@ -134,15 +134,15 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                     } catch (e) { console.error("createEventAsync:", e) }
                 }
             }
+            const notificationId = await programarRecordatorio(tarea, getFechaHora()) ?? undefined
             await addTask({
                 id: Date.now().toString(),
                 fecha: fechaElegida.toLocaleDateString("es-AR"),
                 hora: horaElegida.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
                 descripcion: tarea,
                 completada: false,
-                fotoUri, ubicacion, contacto, calendarEventId, prioridad,
+                fotoUri, ubicacion, contacto, calendarEventId, notificationId, prioridad,
             })
-            await programarRecordatorio(tarea, getFechaHora())
             navigation.navigate("Home")
         } catch (error) {
             console.error(error)
