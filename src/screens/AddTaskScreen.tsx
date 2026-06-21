@@ -1,5 +1,5 @@
 import { StackNavigationProp } from "@react-navigation/stack"
-import { ActivityIndicator, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { RootStackParamList } from "../../App"
 import { useState } from "react"
 import { programarRecordatorio } from "@/services/notificationsService"
@@ -134,13 +134,21 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                     } catch (e) { console.error("createEventAsync:", e) }
                 }
             }
-            const notificationId = await programarRecordatorio(tarea, getFechaHora()) ?? undefined
+            const fechaHora = getFechaHora()
+            if (fechaHora.getTime() <= Date.now()) {
+                Alert.alert(
+                    "Sin recordatorio",
+                    "La fecha y hora elegidas ya pasaron, así que no se programará una notificación para esta tarea."
+                )
+            }
+            const notificationId = await programarRecordatorio(tarea, fechaHora) ?? undefined
             await addTask({
                 id: Date.now().toString(),
                 fecha: fechaElegida.toLocaleDateString("es-AR"),
                 hora: horaElegida.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
                 descripcion: tarea,
                 completada: false,
+                timestamp: fechaHora.getTime(),
                 fotoUri, ubicacion, contacto, calendarEventId, notificationId, prioridad,
             })
             navigation.navigate("Home")

@@ -52,6 +52,11 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
                 await Calendar.deleteEventAsync(task.calendarEventId)
             } catch {}
         }
+        if (task?.notificationId) {
+            try {
+                await Notifications.cancelScheduledNotificationAsync(task.notificationId)
+            } catch {}
+        }
         const updated = await eliminarTarea(id)
         set({ tasks: updated })
     },

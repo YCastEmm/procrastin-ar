@@ -5,7 +5,9 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications'
+import { configurarCanalAndroid } from './src/services/notificationsService'
 
 
 export type RootStackParamList = {
@@ -33,6 +35,10 @@ Notifications.setNotificationHandler({
 })
 
 export default function App() {
+    useEffect(() => {
+        configurarCanalAndroid()
+    }, [])
+
     return (
         <NavigationContainer>
             <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>

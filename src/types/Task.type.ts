@@ -16,6 +16,7 @@ export interface Task {
         telefono?: string
     }
     hora?: string
+    timestamp?: number
     calendarEventId?: string
     notificationId?: string
     prioridad?: 'alta' | 'media' | 'baja'
