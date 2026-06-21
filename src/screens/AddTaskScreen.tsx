@@ -9,7 +9,7 @@ import * as Location from "expo-location"
 import * as Contacts from "expo-contacts"
 import * as Calendar from "expo-calendar"
 import { Task } from "@/types/Task.type"
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
+import PickerModal from "@/components/PickerModal"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
 import { useTaskStore } from "@/store/taskStore"
@@ -36,6 +36,8 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
     const [contacto, setContacto] = useState<Task["contacto"]>(undefined)
     const [prioridad, setPrioridad] = useState<Task["prioridad"]>("media")
     const [showCalendarModal, setShowCalendarModal] = useState(false)
+    const [showDateModal, setShowDateModal] = useState(false)
+    const [showTimeModal, setShowTimeModal] = useState(false)
 
     const { addTask } = useTaskStore()
 
@@ -79,22 +81,8 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
         setContacto({ nombre: contact.name, telefono: contact.phoneNumbers?.[0]?.number ?? undefined })
     }
 
-    const abrirDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: fechaElegida,
-            mode: "date",
-            onChange: (_, d) => { if (d) setFechaElegida(d) },
-        })
-    }
-
-    const abrirTimePicker = () => {
-        DateTimePickerAndroid.open({
-            value: horaElegida,
-            mode: "time",
-            is24Hour: true,
-            onChange: (_, d) => { if (d) setHoraElegida(d) },
-        })
-    }
+    const abrirDatePicker = () => setShowDateModal(true)
+    const abrirTimePicker = () => setShowTimeModal(true)
 
     const getFechaHora = () => {
         const dt = new Date(fechaElegida)
@@ -311,6 +299,22 @@ const AddTaskScreen = ({ navigation }: AddTaskScreenProps) => {
                     <Text style={[styles.createButtonText, !tarea.trim() && { color: "#0d2e1a" }]}>Crear tarea</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Selectores de fecha y hora (tema oscuro) */}
+            <PickerModal
+                visible={showDateModal}
+                mode="date"
+                value={fechaElegida}
+                onClose={() => setShowDateModal(false)}
+                onConfirm={setFechaElegida}
+            />
+            <PickerModal
+                visible={showTimeModal}
+                mode="time"
+                value={horaElegida}
+                onClose={() => setShowTimeModal(false)}
+                onConfirm={setHoraElegida}
+            />
 
             {/* Modal calendario */}
             <Modal
