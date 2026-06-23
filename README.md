@@ -6,7 +6,6 @@ App de lista de tareas con almacenamiento 100% local.
 
 [Video demo](https://youtube.com/shorts/bold3eTuEcM)
 
-> Actualizar con el nuevo video demo (Parcial 2, <1 min) antes de la entrega.
 
 ## Funcionalidades
 
